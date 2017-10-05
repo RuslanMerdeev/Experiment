@@ -72,6 +72,7 @@ class Download extends AsyncTask {
             // Connect to server.
             connection.connect();
 
+            Log.d(MainActivity.LOG, "download: doInBackground: content type="+connection.getContentType());
             Log.d(MainActivity.LOG, "download: doInBackground: resp code="+connection.getResponseCode());
             // Make sure response code is in the 200 range.
             if (connection.getResponseCode() / 100 != 2) {
@@ -95,6 +96,7 @@ class Download extends AsyncTask {
 
             // Open file and seek to the end of it.
             file = new RandomAccessFile(getFileName(url), "rw");
+            Log.d(MainActivity.LOG, "download: doInBackground: flag");
             file.seek(downloaded);
 
             stream = connection.getInputStream();

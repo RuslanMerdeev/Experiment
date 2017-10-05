@@ -65,18 +65,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case Dialog.BUTTON_NEGATIVE:
-                offset = offset.substring(0, offset.lastIndexOf("/"));
-                doRequestList();
+                if(offset.contains("/")) {
+                    offset = offset.substring(0, offset.lastIndexOf("/"));
+                    doRequestList();
+                }
                 break;
 
             default:
                 String elem = list.get(i);
                 offset = offset + elem;
                 if (elem.contains(".")) {
-                    try {
-                        new Download(this, new URL(getResources().getString(R.string.resource) + getResources().getString(R.string.reference) + offset));//"http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
-                    }
-                    catch (MalformedURLException e) {}
+//                    try {
+                        //new Download(this, new URL("https://cloclo39.datacloudmail.ru/weblink/thumb/xw0/6mMo/hyo9wksZC/andro.gif"));//getResources().getString(R.string.resource) + getResources().getString(R.string.reference) + offset));//"http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
+                        new D_temp(this, "https://cloclo44.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/andro.gif?etag=5A43A9D24CE4EB0A8FF3679ED63C0B948B26EA9C&key=174ab43770e48095b1c389cbeb048e2432c83513");//"https://cloclo4.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/temp.txt?etag=7275736C616E0000000000000000000000000000&key=174ab43770e48095b1c389cbeb048e2432c83513");//
+//                    }
+//                    catch (MalformedURLException e) {}
                 }
                 else {
                     doRequestList();
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, list);
                 adb.setAdapter(adapter, this);
                 adb.setNeutralButton(R.string.cancel, this);
-                adb.setNegativeButton(R.string.back, this);
+                if (offset.contains("/")) adb.setNegativeButton(R.string.back, this);
                 return adb.create();
         }
         return super.onCreateDialog(id);
