@@ -14,27 +14,22 @@ import java.util.ArrayList;
  */
 
 public class RequestList extends AsyncTask {
-    private StringBuilder result;
     private String resource;
     private String reference;
+    private String offset;
     private ArrayList<String> list;
-    private CompleteListener o;
+    private CompleteListener cl;
 
-    RequestList(CompleteListener o, String resource, String reference) {
+    RequestList(CompleteListener cl, String resource, String reference, String offset) {
         super();
         if (resource.contains("mail.ru") == false) return;
         this.resource = resource;
         this.reference = reference;
-        this.o = o;
+        this.offset = offset;
+        this.cl = cl;
         list = new ArrayList<>();
 
         this.execute();
-    }
-
-    @Override
-    protected void onPostExecute(Object o) {
-        super.onPostExecute(o);
-        this.o.complete(this, list);
     }
 
     @Override
@@ -42,7 +37,7 @@ public class RequestList extends AsyncTask {
         Log.d(MainActivity.LOG, "requestList: doInBackground");
         try {
             String temp;
-            Connection con = Jsoup.connect(resource+reference);
+            Connection con = Jsoup.connect(resource+reference+offset);
 
             Document doc = con.get();
             temp = doc.body().toString();
@@ -52,13 +47,19 @@ public class RequestList extends AsyncTask {
             String[] atemp = temp.split("\"");
 
             for (int i=2; i<atemp.length; i+=2) {
-                list.add(atemp[i].split(reference)[1] + "\n");
+                list.add(atemp[i].split(reference+offset)[1] + "\n");
             }
 
         }
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "requestList: doInBackground: Exception: " + e.getMessage());
+            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(Object o) {
+        super.onPostExecute(o);
+        cl.complete(this, list);
     }
 }

@@ -12,9 +12,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.RandomAccessFile;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 
 
@@ -25,7 +22,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<String> list;
     String offset = "";
     final int DIALOG_LIST = 1;
-    String cont;
+    String list_title;
+    String resource;
+    String reference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +38,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnList = (Button) findViewById(R.id.btnList);
         btnList.setOnClickListener(this);
 
+        list_title = getResources().getString(R.string.list_title);
+        resource = getResources().getString(R.string.resource);
+        reference = getResources().getString(R.string.reference);
+
         doRequestList();
     }
 
@@ -51,10 +54,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 doRequestList();
                 break;
         }
-    }
-
-    void doRequestList() {
-        new RequestList(this, getResources().getString(R.string.resource), getResources().getString(R.string.reference) + offset);
     }
 
     @Override
@@ -74,17 +73,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 String elem = list.get(i);
                 offset = offset + elem;
-                if (elem.contains(".")) {
-//                    try {
-                        //new Download(this, new URL("https://cloclo39.datacloudmail.ru/weblink/thumb/xw0/6mMo/hyo9wksZC/andro.gif"));//getResources().getString(R.string.resource) + getResources().getString(R.string.reference) + offset));//"http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
-                        new D_temp(this, "https://cloclo44.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/andro.gif?etag=5A43A9D24CE4EB0A8FF3679ED63C0B948B26EA9C&key=174ab43770e48095b1c389cbeb048e2432c83513");//"https://cloclo4.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/temp.txt?etag=7275736C616E0000000000000000000000000000&key=174ab43770e48095b1c389cbeb048e2432c83513");//
-//                    }
-//                    catch (MalformedURLException e) {}
-                }
-                else {
-                    doRequestList();
-                }
+                if (elem.contains(".")) doDownload();
+                else doRequestList();
                 break;
+        }
+    }
+
+    void doRequestList() {
+        new RequestList(this, resource, reference, offset);
+    }
+
+    void doDownload() {
+        new Download(this, "https://cloclo44.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/andro.gif?etag=5A43A9D24CE4EB0A8FF3679ED63C0B948B26EA9C&key=174ab43770e48095b1c389cbeb048e2432c83513");
+    }
+
+    @Override
+    public void complete(Object o, Object res) {
+        if (o instanceof RequestList) {
+            Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
+            list = (ArrayList<String>) res;
+            showDialog(DIALOG_LIST);
+        } else if (o instanceof Download) {
+            Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
+            tvContent.setText((String) res);
         }
     }
 
@@ -93,11 +104,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         switch (id) {
             case DIALOG_LIST:
-                adb.setTitle(getResources().getString(R.string.list_title) + offset);
+                adb.setTitle(list_title + offset);
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, list);
                 adb.setAdapter(adapter, this);
                 adb.setNeutralButton(R.string.cancel, this);
-                if (offset.contains("/")) adb.setNegativeButton(R.string.back, this);
+                adb.setNegativeButton(R.string.back, this);
                 return adb.create();
         }
         return super.onCreateDialog(id);
@@ -113,18 +124,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, list);
                 aDialog.getListView().setAdapter(adapter);
                 break;
-        }
-    }
-
-    @Override
-    public void complete(Object o, Object res) {
-        if (o instanceof RequestList) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
-            list = (ArrayList<String>) res;
-            showDialog(DIALOG_LIST);
-        } else if (o instanceof Download) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
-            cont = (String) res;
         }
     }
 }
