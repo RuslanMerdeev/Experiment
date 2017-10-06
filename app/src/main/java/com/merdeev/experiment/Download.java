@@ -20,7 +20,7 @@ public class Download extends AsyncTask {
 
     private CompleteListener cl;
     private String url;
-    private String result = null;
+    private String result;
 
     private static final int MAX_SIZE = 20 * 1024 * 1024;
 
@@ -35,8 +35,8 @@ public class Download extends AsyncTask {
     protected Object doInBackground(Object[] objects) {
         Log.d(MainActivity.LOG, "download: doInBackground");
         try {
-            final String path = "experiment";
-            File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);//Environment.getDataDirectory(), path);
+            final String path = "Experiment";
+            File f = createFile(path);
             f.mkdirs();
 
             URL u = new URL(url);
@@ -51,18 +51,19 @@ public class Download extends AsyncTask {
             if (contentLength < MAX_SIZE) {
                 File file;
                 if ("image/jpeg".equals(contentType)) {
-                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".jpg");
+                    result = path + "/" + getFileName(u) + ".jpg";
                 } else if ("text/plain".equals(contentType)) {
-                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".txt");
+                    result = path + "/" + getFileName(u) + ".txt";
                 } else if ("image/gif".equals(contentType)) {
-                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".gif");
+                    result = path + "/" + getFileName(u) + ".gif";
                 } else {
                     Log.d(MainActivity.LOG, "download: doInBackground: unknown file type");
                     return null;
                 }
+                file = createFile(result);
                 saveBinaryFile(uc, contentLength, u, file);
                 Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
-                result = file.getPath();
+                //result = file.getAbsolutePath();
             } else {
                 Log.d(MainActivity.LOG, "download: doInBackground: too big file");
                 return null;
@@ -82,7 +83,16 @@ public class Download extends AsyncTask {
     @Override
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
-        cl.complete(this, result);
+        try {
+            cl.complete(this, result);
+        }
+        catch (Exception e) {
+            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            StackTraceElement[] el = e.getStackTrace();
+            for (StackTraceElement i : el) {
+                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+            }
+        }
     }
 
     private void saveBinaryFile(URLConnection uc, int contentLength, URL u, File fileName) throws IOException {
@@ -110,9 +120,13 @@ public class Download extends AsyncTask {
         out.close();
     }
 
-    private String getFileName(URL url) {
+    private String getFileName(URL url) throws Exception {
         String fileName = url.getFile();
         fileName = fileName.substring(fileName.lastIndexOf('/') + 1);
         return fileName.substring(0, fileName.lastIndexOf("."));
+    }
+
+    static File createFile(String path) throws Exception {
+        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);
     }
 }

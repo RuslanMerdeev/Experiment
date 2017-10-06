@@ -50,8 +50,6 @@ public class RequestList extends AsyncTask {
             body = body.substring(body.lastIndexOf("\"list\"")+6,body.lastIndexOf("\"id\""));
             ArrayList<String> divList = splitList(body);
             list = makeMapList(divList);
-
-            Log.d(MainActivity.LOG, ((HashMap<String, String>)list.get(5)).get("address"));
         }
         catch (Exception e) {
             Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
@@ -66,11 +64,22 @@ public class RequestList extends AsyncTask {
     @Override
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
-        cl.complete(this, list);
+        try {
+            cl.complete(this, list);
+        }
+        catch (Exception e) {
+            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            StackTraceElement[] el = e.getStackTrace();
+            for (StackTraceElement i : el) {
+                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+            }
+        }
     }
 
-    ArrayList<String> splitList(String list) throws Exception {
+    private ArrayList<String> splitList(String list) throws Exception {
         ArrayList<String> al = new ArrayList<>();
+        if(list.contains("\"") == false) return al;
+
         list = list.substring(list.indexOf("\""), list.lastIndexOf("\"") + 1);
         list = list.replaceAll("\t", "");
         String[] temp = list.split("\n\\},\n\\{\n");
@@ -78,7 +87,7 @@ public class RequestList extends AsyncTask {
         return al;
     }
 
-    ArrayList<Map<String, String>> makeMapList(ArrayList<String> list) throws Exception {
+    private ArrayList<Map<String, String>> makeMapList(ArrayList<String> list) throws Exception {
         ArrayList<Map<String, String>> mapArrayList = new ArrayList<>();
         String temp;
         for (String i : list) {
@@ -101,7 +110,7 @@ public class RequestList extends AsyncTask {
         return mapArrayList;
     }
 
-    String findToken(String text) throws Exception {
+    private String findToken(String text) throws Exception {
         String token;
         token = text.substring(text.lastIndexOf("\"tokens\""));
         token = token.substring(token.indexOf("\"download\"")+13);
@@ -109,7 +118,7 @@ public class RequestList extends AsyncTask {
         return token;
     }
 
-    String findView(String text) throws Exception {
+    private String findView(String text) throws Exception {
         String address;
         address = text.substring(0,text.indexOf(".datacloudmail.ru/view/"));
         address = address.substring(address.lastIndexOf("//")+2);

@@ -5,5 +5,5 @@ package com.merdeev.experiment;
  */
 
 public interface CompleteListener {
-    void complete (Object o, Object res);
+    void complete (Object o, Object res) throws Exception;
 }

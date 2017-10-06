@@ -2,6 +2,7 @@ package com.merdeev.experiment;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -79,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 offset = offset + elem;
                 if (map.get("type").equals("file")) {
                     address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
-                    Log.d(LOG, address);
                     doDownload();
                 }
                 else doRequestList();
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void complete(Object o, Object res) {
+    public void complete(Object o, Object res) throws Exception {
         if (o instanceof RequestList) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
             list = (ArrayList<Map<String, String>>) res;
@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (o instanceof Download) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
             tvContent.setText((String) res);
+            inflateView((String)res);
         }
     }
 
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case DIALOG_LIST:
                 adb.setTitle(list_title + offset);
                 ArrayList<String> names = getNames();
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, names);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, names);
                 adb.setAdapter(adapter, this);
                 adb.setNeutralButton(R.string.cancel, this);
                 adb.setNegativeButton(R.string.back, this);
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case DIALOG_LIST:
                 aDialog.setTitle(getResources().getString(R.string.list_title) + offset);
                 ArrayList<String> names = getNames();
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, names);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, names);
                 aDialog.getListView().setAdapter(adapter);
                 break;
         }
@@ -140,8 +141,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<String> getNames() {
         ArrayList<String> names = new ArrayList<>();
         for (Map<String, String> i : list) {
-            names.add(((HashMap<String, String>)i).get("name"));
+            names.add((i).get("name"));
         }
         return names;
+    }
+
+    private void inflateView(String path) throws Exception {
+        Intent intent = new  Intent(this, ViewActivity.class);
+        intent.putExtra("path",path);
+        startActivity(intent);
     }
 }
