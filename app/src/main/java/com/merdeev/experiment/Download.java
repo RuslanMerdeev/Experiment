@@ -6,11 +6,9 @@ import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -35,12 +33,12 @@ public class Download extends AsyncTask {
 
     @Override
     protected Object doInBackground(Object[] objects) {
-
-        final String path = "experiment";
-        File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);//Environment.getDataDirectory(), path);
-        f.mkdirs();
-
+        Log.d(MainActivity.LOG, "download: doInBackground");
         try {
+            final String path = "experiment";
+            File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);//Environment.getDataDirectory(), path);
+            f.mkdirs();
+
             URL u = new URL(url);
 
             URLConnection uc = u.openConnection();
@@ -50,27 +48,32 @@ public class Download extends AsyncTask {
             int contentLength = uc.getContentLength();
             Log.d(MainActivity.LOG, "download: doInBackground: file: type = \"" + contentType + "\", length = " + contentLength);
 
-            if(contentLength < MAX_SIZE) {
+            if (contentLength < MAX_SIZE) {
                 File file;
                 if ("image/jpeg".equals(contentType)) {
                     file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".jpg");
-                } else if ("text/plain".equals(contentType)){
-                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u)+".txt");
-                } else if ("image/gif".equals(contentType)){
-                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u)+".gif");
-                }else{
+                } else if ("text/plain".equals(contentType)) {
+                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".txt");
+                } else if ("image/gif".equals(contentType)) {
+                    file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path + "/" + getFileName(u) + ".gif");
+                } else {
                     Log.d(MainActivity.LOG, "download: doInBackground: unknown file type");
                     return null;
                 }
                 saveBinaryFile(uc, contentLength, u, file);
                 Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
                 result = file.getPath();
-            }else{
+            } else {
                 Log.d(MainActivity.LOG, "download: doInBackground: too big file");
                 return null;
             }
-        } catch (Exception e) {
-            Log.d(MainActivity.LOG, "download: doInBackground: " + e.getClass() + ": " + e.getMessage());
+        }
+        catch (Exception e) {
+            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            StackTraceElement[] el = e.getStackTrace();
+            for (StackTraceElement i : el) {
+                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+            }
         }
 
         return null;

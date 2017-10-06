@@ -13,18 +13,21 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, DialogInterface.OnClickListener, CompleteListener {
 
     final static String LOG = "States";
-    TextView tvContent;
-    ArrayList<String> list;
-    String offset = "";
-    final int DIALOG_LIST = 1;
-    String list_title;
-    String resource;
-    String reference;
+    private TextView tvContent;
+    private ArrayList<Map<String, String>> list;
+    private String offset = "";
+    private String address = "";
+    private final int DIALOG_LIST = 1;
+    private String list_title;
+    private String resource;
+    private String reference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,27 +74,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             default:
-                String elem = list.get(i);
+                HashMap<String,String> map = (HashMap<String,String>)list.get(i);
+                String elem = "/" + map.get("name");
                 offset = offset + elem;
-                if (elem.contains(".")) doDownload();
+                if (map.get("type").equals("file")) {
+                    address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
+                    Log.d(LOG, address);
+                    doDownload();
+                }
                 else doRequestList();
                 break;
         }
     }
 
-    void doRequestList() {
+    private void doRequestList() {
         new RequestList(this, resource, reference, offset);
     }
 
-    void doDownload() {
-        new Download(this, "https://cloclo44.datacloudmail.ru/weblink/view/6mMo/hyo9wksZC/andro.gif?etag=5A43A9D24CE4EB0A8FF3679ED63C0B948B26EA9C&key=174ab43770e48095b1c389cbeb048e2432c83513");
+    private void doDownload() {
+        new Download(this, address);
     }
 
     @Override
     public void complete(Object o, Object res) {
         if (o instanceof RequestList) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
-            list = (ArrayList<String>) res;
+            list = (ArrayList<Map<String, String>>) res;
             showDialog(DIALOG_LIST);
         } else if (o instanceof Download) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
@@ -105,7 +113,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (id) {
             case DIALOG_LIST:
                 adb.setTitle(list_title + offset);
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, list);
+                ArrayList<String> names = getNames();
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, names);
                 adb.setAdapter(adapter, this);
                 adb.setNeutralButton(R.string.cancel, this);
                 adb.setNegativeButton(R.string.back, this);
@@ -121,9 +130,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (id) {
             case DIALOG_LIST:
                 aDialog.setTitle(getResources().getString(R.string.list_title) + offset);
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, list);
+                ArrayList<String> names = getNames();
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, names);
                 aDialog.getListView().setAdapter(adapter);
                 break;
         }
+    }
+
+    private ArrayList<String> getNames() {
+        ArrayList<String> names = new ArrayList<>();
+        for (Map<String, String> i : list) {
+            names.add(((HashMap<String, String>)i).get("name"));
+        }
+        return names;
     }
 }
