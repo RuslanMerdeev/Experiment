@@ -13,43 +13,70 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /**
- * Created by r.merdeev on 05.10.2017.
+ * Загружает файл в файловую систему
+ * @author R.Z.Merdeev
  */
-
 public class Download extends AsyncTask {
 
+    /** Слушатель завершения задачи */
     private CompleteListener cl;
+
+    /** Ссылка для скачивания */
     private String url;
+
+    /** Адрес хранения файла */
     private String result;
 
+    /** Максимальный размер загружаемого файла */
     private static final int MAX_SIZE = 20 * 1024 * 1024;
 
+    /**
+     * Конструктор
+     * @param cl слушатель завершения
+     * @param url ссылка для скачивания
+     */
     public Download(CompleteListener cl, String url) {
+        // Сохраняются переданные параметры
         this.cl = cl;
         this.url = url;
 
+        // Запускается асинхронная задача
         this.execute();
     }
 
+    /**
+     * Выполняет фоновую работу по загрузке файла
+     * @param objects
+     * @return
+     */
     @Override
     protected Object doInBackground(Object[] objects) {
         Log.d(MainActivity.LOG, "download: doInBackground");
+
         try {
+            // Создается подпапка в папке хранения файла
             final String path = "Experiment";
             File f = createFile(path);
             f.mkdirs();
 
+            // Создается URL по ссылке на скачивание
             URL u = new URL(url);
 
+            // Открывается соединение
             URLConnection uc = u.openConnection();
             uc.connect();
             uc.getContent();
+
+            // Сохраняются параметры загружаемого файла
             String contentType = uc.getContentType();
             int contentLength = uc.getContentLength();
             Log.d(MainActivity.LOG, "download: doInBackground: file: type = \"" + contentType + "\", length = " + contentLength);
 
+            // Проверяется размер загружаемого файла, что он меньше максимального размера
             if (contentLength < MAX_SIZE) {
                 File file;
+
+                // Проверяется тип загружаемого файла
                 if ("image/jpeg".equals(contentType)) {
                     result = path + "/" + getFileName(u) + ".jpg";
                 } else if ("text/plain".equals(contentType)) {
@@ -60,17 +87,21 @@ public class Download extends AsyncTask {
                     Log.d(MainActivity.LOG, "download: doInBackground: unknown file type");
                     return null;
                 }
+
+                // Создается файл в файловой системе для сохранения загружаемого файла
                 file = createFile(result);
+
+                //
                 saveBinaryFile(uc, contentLength, u, file);
                 Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
-                //result = file.getAbsolutePath();
             } else {
                 Log.d(MainActivity.LOG, "download: doInBackground: too big file");
                 return null;
             }
         }
+        // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Log.d(MainActivity.LOG, "download: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
                 Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
@@ -84,8 +115,10 @@ public class Download extends AsyncTask {
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
         try {
+            // Уведомляется слушатель о завершении задачи, передается результат
             cl.complete(this, result);
         }
+        // Выводится трейс для исключения
         catch (Exception e) {
             Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
@@ -95,6 +128,14 @@ public class Download extends AsyncTask {
         }
     }
 
+    /**
+     * Загружает файл
+     * @param uc
+     * @param contentLength
+     * @param u
+     * @param fileName
+     * @throws IOException
+     */
     private void saveBinaryFile(URLConnection uc, int contentLength, URL u, File fileName) throws IOException {
         InputStream raw = uc.getInputStream();
         InputStream in = new BufferedInputStream(raw);
