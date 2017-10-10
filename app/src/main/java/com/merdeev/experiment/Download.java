@@ -36,6 +36,9 @@ public class Download extends AsyncTask {
      * @param url ссылка для скачивания
      */
     public Download(CompleteListener cl, String url) {
+        // Проверяется, тот ли это url, который ожидаем
+        if (url.contains("mail.ru") == false) return;
+
         // Сохраняются переданные параметры
         this.cl = cl;
         this.url = url;
@@ -91,7 +94,7 @@ public class Download extends AsyncTask {
                 // Создается файл в файловой системе для сохранения загружаемого файла
                 file = createFile(result);
 
-                //
+                // Загружаются данные в файл
                 saveBinaryFile(uc, contentLength, u, file);
                 Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
             } else {
@@ -111,6 +114,10 @@ public class Download extends AsyncTask {
         return null;
     }
 
+    /**
+     * Уведомляет слушателя об окончании выполнения задачи и отдает результат
+     * @param o
+     */
     @Override
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
@@ -129,11 +136,11 @@ public class Download extends AsyncTask {
     }
 
     /**
-     * Загружает файл
-     * @param uc
-     * @param contentLength
-     * @param u
-     * @param fileName
+     * Загружает данные в файл
+     * @param uc открытое соединение
+     * @param contentLength размер файла
+     * @param u ссылка на скачивание
+     * @param fileName файл хранения
      * @throws IOException
      */
     private void saveBinaryFile(URLConnection uc, int contentLength, URL u, File fileName) throws IOException {
@@ -161,12 +168,29 @@ public class Download extends AsyncTask {
         out.close();
     }
 
+    /**
+     * Получает имя файла по URL
+     * @param url URL
+     * @return имя файла
+     * @throws Exception
+     */
     private String getFileName(URL url) throws Exception {
+        // Определяется полное имя файла по URL
         String fileName = url.getFile();
+
+        // Отбрасывается путь до файла
         fileName = fileName.substring(fileName.lastIndexOf('/') + 1);
+
+        // Отбрасывается расширение файла и возвращается результат
         return fileName.substring(0, fileName.lastIndexOf("."));
     }
 
+    /**
+     * Создает/открывает файл в файловой системе в папке загрузок
+     * @param path путь до файла с расширением
+     * @return файл
+     * @throws Exception
+     */
     static File createFile(String path) throws Exception {
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);
     }

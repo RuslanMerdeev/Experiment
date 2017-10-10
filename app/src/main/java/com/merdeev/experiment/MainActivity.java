@@ -157,13 +157,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * Определяет источник вызова и
-     * обрабатывает данные
+     * обрабатывает данные {@link CompleteListener}
      * @param o источник вызова, объект класса
      * @param res результат, произвольные данные
      * @throws Exception
      */
     @Override
     public void complete(Object o, Object res) throws Exception {
+        // Проверяется наличие результата
+        if (res == null) throw new NullPointerException("complete: res: null");
+
         if (o instanceof RequestList) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
 
@@ -268,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Nнициирует отображение содержания файла в отдельном Activity
+     * Nнициирует отображение содержания файла в отдельном Activity {@link ViewActivity}
      * @param path адрес хранения файла
      * @throws Exception
      */
@@ -276,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Создается intent
         Intent intent = new Intent(this, ViewActivity.class);
 
-        // Сохраняются данные в intent для передачи создаваемому Activity
+        // Сохраняются данные о месте хранения файла в intent для передачи создаваемому Activity
         intent.putExtra("path", path);
 
         // Запускается Activity
