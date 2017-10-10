@@ -31,6 +31,7 @@ public class RequestList extends AsyncTask {
 
     /**
      * Конструктор,
+     * сохраняет параметры и запускает асинхронную задачу
      * @param cl слушатель завершения
      * @param resource ресурс для запроса
      * @param reference ссылка для запроса

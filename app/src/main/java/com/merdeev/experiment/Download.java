@@ -31,7 +31,8 @@ public class Download extends AsyncTask {
     private static final int MAX_SIZE = 20 * 1024 * 1024;
 
     /**
-     * Конструктор
+     * Конструктор,
+     * сохраняет параметры и запускает асинхронную задачу
      * @param cl слушатель завершения
      * @param url ссылка для скачивания
      */
@@ -82,10 +83,12 @@ public class Download extends AsyncTask {
                 // Проверяется тип загружаемого файла
                 if ("image/jpeg".equals(contentType)) {
                     result = path + "/" + getFileName(u) + ".jpg";
-                } else if ("text/plain".equals(contentType)) {
-                    result = path + "/" + getFileName(u) + ".txt";
                 } else if ("image/gif".equals(contentType)) {
                     result = path + "/" + getFileName(u) + ".gif";
+                } else if ("image/png".equals(contentType)) {
+                    result = path + "/" + getFileName(u) + ".png";
+                } else if ("text/plain".equals(contentType)) {
+                    result = path + "/" + getFileName(u) + ".txt";
                 } else {
                     Log.d(MainActivity.LOG, "download: doInBackground: unknown file type");
                     return null;
@@ -127,7 +130,7 @@ public class Download extends AsyncTask {
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Log.d(MainActivity.LOG, "download: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
                 Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
