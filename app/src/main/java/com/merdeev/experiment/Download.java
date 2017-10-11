@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +32,9 @@ public class Download extends AsyncTask {
 
     /** Результат работы */
     private Object result;
+
+    /** Тип езультата работы */
+    private Class type;
 
     /** Данные из ресурсов */
     private String app_name;
@@ -113,16 +117,13 @@ public class Download extends AsyncTask {
                 }
                 // Проверяется, что нет необходимости сохранять файл
                 else {
-                    if (contentType.equals(".txt")) {
-                        // Сохраняется текст
-                        result = saveText(uc, contentLength);
-                        Log.d(MainActivity.LOG, "download: doInBackground: loaded: text");
-                    }
-                    else {
-                        // Сохраняется Bitmap
-                        result = saveBitmap(uc, contentLength);
-                        Log.d(MainActivity.LOG, "download: doInBackground: loaded: image");
-                    }
+                    // Сохраняется массив байт
+                    result = saveByteArray(uc, contentLength);
+
+                    if (contentType.equals(".txt")) type = String.class;
+                    else type = Bitmap.class;
+
+                    Log.d(MainActivity.LOG, "download: doInBackground: loaded: " + contentType);
                 }
             } else {
                 Log.d(MainActivity.LOG, "download: doInBackground: too big file");
@@ -150,7 +151,7 @@ public class Download extends AsyncTask {
         super.onPostExecute(o);
         try {
             // Уведомляется слушатель о завершении задачи, передается результат
-            cl.complete(this, result);
+            cl.complete(this, result, type);
         }
         // Выводится трейс для исключения
         catch (Exception e) {
@@ -193,13 +194,13 @@ public class Download extends AsyncTask {
     }
 
     /**
-     * Сохраняет файл
+     * Возвращает данные в виде массива байт
      * @param uc открытое соединение
      * @param contentLength размер файла
-     * @param fileName файл хранения
-     * @throws IOException
+     * @return массив байт
+     * @throws Exception
      */
-    private void saveBinaryFile(URLConnection uc, int contentLength, File fileName) throws IOException {
+    byte[] saveByteArray(URLConnection uc, int contentLength) throws Exception {
         InputStream in = new BufferedInputStream(uc.getInputStream());
         byte[] data = new byte[contentLength];
         int bytesRead;
@@ -217,6 +218,19 @@ public class Download extends AsyncTask {
                     + " bytes; Expected " + contentLength + " bytes");
         }
 
+        return data;
+    }
+
+    /**
+     * Сохраняет файл
+     * @param uc открытое соединение
+     * @param contentLength размер файла
+     * @param fileName файл хранения
+     * @throws Exception
+     */
+    private void saveBinaryFile(URLConnection uc, int contentLength, File fileName) throws Exception {
+        byte[] data = saveByteArray(uc, contentLength);
+
         FileOutputStream out = new FileOutputStream(fileName);
         out.write(data);
         out.flush();
@@ -224,49 +238,32 @@ public class Download extends AsyncTask {
     }
 
     /**
-     * Сохраняет Bitmap
-     * @param uc открытое соединение
-     * @param contentLength размер файла
+     * Создает Bitmap из массива байт
+     * @param b массив байт
      * @return bitmap
      * @throws Exception
      */
-    Bitmap saveBitmap(URLConnection uc, int contentLength) throws Exception {
-        InputStream is = new BufferedInputStream(uc.getInputStream());
-        return BitmapFactory.decodeStream(is);
+    static Bitmap createBitmapFromByteArray(byte[] b) throws Exception {
+        // Массив байт преобразуется в ByteArrayInputStream
+        ByteArrayInputStream stream = new ByteArrayInputStream(b);
+//        InputStream is = new BufferedInputStream(stream);
+        // Возвращается Ишеьфз
+        return BitmapFactory.decodeStream(stream);
     }
 
     /**
-     * Сохраняет текст
-     * @param uc открытое соединение
-     * @param contentLength размер файла
+     * Создает текст из массива байт
+     * @param b массив байт
      * @return текст
      * @throws Exception
      */
-    String saveText(URLConnection uc, int contentLength) throws Exception {
-        // Создается InputStream из соединения
-        InputStream is = new BufferedInputStream(uc.getInputStream());
-
-        // Создается ByteArrayOutputStream объект
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        int bytesRead;
-        int offset = 0;
-        while (offset < contentLength) {
-            bytesRead = is.read();
-            baos.write(bytesRead);
-            if (bytesRead == -1)
-                break;
-            offset += bytesRead;
-        }
-        is.close();
-
-        if (offset != contentLength) {
-            throw new IOException("Only read " + offset
-                    + " bytes; Expected " + contentLength + " bytes");
-        }
+    static String createTextFromByteArray(byte[] b) throws Exception {
+        // Массив байт преобразуется в ByteArrayOutputStream
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        stream.write(b);
 
         // Возвращается строка нужной кодировки
-        return baos.toString("Cp1251");
+        return stream.toString("Cp1251");
     }
 
     /**
@@ -275,29 +272,29 @@ public class Download extends AsyncTask {
      * @return файл
      * @throws Exception
      */
-    static File createFile(String path) throws Exception {
-        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), path);
+    File createFile(String path) throws Exception {
+        return new File(Environment.getExternalStorageDirectory(), path);
     }
 
     /**
      * Возвращает Bitmap из файла в файловой системе в папке загрузок
-     * @param path путь до файла с расширением
+     * @param uri ссылка на файл
      * @return bitmap
      * @throws Exception
      */
-    static Bitmap createBitmapFromFile(String path) throws Exception {
-        return BitmapFactory.decodeStream(new BufferedInputStream(new FileInputStream(path)));
+    static Bitmap createBitmapFromFile(URI uri) throws Exception {
+        return BitmapFactory.decodeStream(new BufferedInputStream(new FileInputStream(uri.getPath())));
     }
 
     /**
      * Возвращает строку текста из файла в файловой системе в папке загрузок
-     * @param path путь до файла с расширением
+     * @param uri ссылка на файл
      * @return строка
      * @throws Exception
      */
-    static String createTextFromFile(String path) throws Exception {
+    static String createTextFromFile(URI uri) throws Exception {
         // Создается inputstream из файла
-        InputStream is = new BufferedInputStream(new FileInputStream(path));
+        InputStream is = new BufferedInputStream(new FileInputStream(uri.getPath()));
 
         // Создается ByteArrayOutputStream объект
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

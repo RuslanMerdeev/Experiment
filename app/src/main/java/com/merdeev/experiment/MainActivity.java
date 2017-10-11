@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -165,41 +164,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Определяет источник вызова и
      * обрабатывает данные {@link CompleteListener}
-     * @param o источник вызова, объект класса
-     * @param res результат, произвольные данные
+     * @param cc источник вызова, объект класса
+     * @param result результат, произвольные данные
+     * @param type тип данных
      * @throws Exception
      */
     @Override
-    public void complete(Object o, Object res) throws Exception {
-        // Проверяется наличие результата
-        if (res == null) throw new NullPointerException("complete: res: null");
+    public void complete(Object cc, Object result, Class type) throws Exception {
+        // Проверяется, что источник вызова есть
+        if (cc == null) {
+            Log.d(LOG, "mainActivity: asCompleteListener: complete: сс: null");
+            return;
+        }
 
-        if (o instanceof RequestList) {
+        // Проверяется, что результат есть
+        if (result == null) {
+            Log.d(LOG, "mainActivity: asCompleteListener: complete: result: null");
+            return;
+        }
+
+        // Проверяется, что источник - объект класса RequestList
+        if (cc instanceof RequestList) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
 
-            // Преобразуется тип результата к списку
-            list = (ArrayList<Map<String, String>>) res;
+            // Результат преобразуется к типу список данных
+            list = (ArrayList<Map<String, String>>) result;
 
             // Вызывается диалог
             showDialog(DIALOG_LIST);
-        } else if (o instanceof Download) {
+        }
+        // Проверяется, что источник - объект класса Download
+        else if (cc instanceof Download) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
-            if (res instanceof String) {
-                //todo временно
-                String text = (String) res;
-                tvContent.setText(text);
 
-                // Отображается содержание файла
-                showContent(new Ser(res, "text"));
+            // Проверяется, что тип результата есть
+            if (type == null) {
+                Log.d(LOG, "mainActivity: asCompleteListener: complete: type: null");
+                return;
             }
-            else if (res instanceof Bitmap) {
-                // Отображается содержание файла
-                showContent(new Ser(res, "bitmap"));
+
+            //todo временно
+            if (type == URI.class) {
+                String text = ((URI) result).getPath();
+                tvContent.setText(text);
             }
-            else if (res instanceof URI) {
-                // Отображается содержание файла
-                showContent(new Ser(res, "uri"));
-            }
+
+            // Отображается содержание файла
+            showContent(new Ser(result, type));
         }
     }
 

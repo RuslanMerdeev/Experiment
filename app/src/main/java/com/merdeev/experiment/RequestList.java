@@ -105,7 +105,7 @@ public class RequestList extends AsyncTask {
         super.onPostExecute(o);
         try {
             // Уведомляется слушатель о завершении задачи, передается результат
-            cl.complete(this, result);
+            cl.complete(this, result, null);
         }
         // Выводится трейс для исключения
         catch (Exception e) {
@@ -150,7 +150,7 @@ public class RequestList extends AsyncTask {
      * @param list список элементов
      * @param token текущий token
      * @param address адрес ресурсов для предпросмотра
-     * @return
+     * @return список данных
      * @throws Exception
      */
     private ArrayList<Map<String, String>> makeMapList(ArrayList<String> list, String token, String address) throws Exception {

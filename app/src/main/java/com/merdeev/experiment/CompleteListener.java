@@ -9,9 +9,10 @@ public interface CompleteListener {
 
     /**
      * При завершении выполнения задачи
-     * @param o источник вызова, объект класса
-     * @param res результат, произвольные данные
+     * @param cc источник вызова, объект класса
+     * @param result результат, произвольные данные
+     * @param type тип данных
      * @throws Exception
      */
-    void complete (Object o, Object res) throws Exception;
+    void complete (Object cc, Object result, Class type) throws Exception;
 }
