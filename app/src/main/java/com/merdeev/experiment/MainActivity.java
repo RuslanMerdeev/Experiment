@@ -3,6 +3,7 @@ package com.merdeev.experiment;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String list_title;
     private String resource;
     private String reference;
+    private String app_name;
+    private boolean save_file;
 
     /**
      * При создании основного Activity
@@ -67,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list_title = getResources().getString(R.string.list_title);
         resource = getResources().getString(R.string.resource);
         reference = getResources().getString(R.string.reference);
+        app_name = getResources().getString(R.string.app_name);
+        save_file = getResources().getBoolean(R.bool.save_file);
 
         // Nнициируется начальный запрос структуры корневой директории
         doRequestList();
@@ -148,11 +155,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * Формирует адрес загрузки и
-     * инициирует загрузку файла {@link Download#Download(CompleteListener, String)}
+     * инициирует загрузку файла {@link Download#Download(CompleteListener, String, String, boolean)}
      */
     private void doDownload(HashMap<String,String> map) {
         String address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
-        new Download(this, address);
+        new Download(this, address, app_name, save_file);
     }
 
     /**
@@ -177,15 +184,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             showDialog(DIALOG_LIST);
         } else if (o instanceof Download) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
+            if (res instanceof String) {
+                //todo временно
+                String text = (String) res;
+                tvContent.setText(text);
 
-            // Преобразуется тип результата к адресу хранения файла
-            String address = (String) res;
-
-            //todo временно
-            tvContent.setText(address);
-
-            // Отображается содержание файла
-            showContent(address);
+                // Отображается содержание файла
+                showContent(new Ser(res, "text"));
+            }
+            else if (res instanceof Bitmap) {
+                // Отображается содержание файла
+                showContent(new Ser(res, "bitmap"));
+            }
+            else if (res instanceof URI) {
+                // Отображается содержание файла
+                showContent(new Ser(res, "uri"));
+            }
         }
     }
 
@@ -271,16 +285,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Nнициирует отображение содержания файла в отдельном Activity {@link ViewActivity}
-     * @param path адрес хранения файла
+     * Nнициирует отображение информации в отдельном Activity {@link ViewActivity}
+     * @param ser данные
      * @throws Exception
      */
-    private void showContent(String path) throws Exception {
+    private void showContent(Ser ser) throws Exception {
         // Создается intent
         Intent intent = new Intent(this, ViewActivity.class);
 
-        // Сохраняются данные о месте хранения файла в intent для передачи создаваемому Activity
-        intent.putExtra("path", path);
+        // Сохраняются данные в intent для передачи создаваемому Activity
+        intent.putExtra("ser", ser);
 
         // Запускается Activity
         startActivity(intent);

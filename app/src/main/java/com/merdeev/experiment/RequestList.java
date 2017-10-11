@@ -23,8 +23,8 @@ public class RequestList extends AsyncTask {
     /** Смещение для текущей директории относительно корневой */
     private String offset;
 
-    /** Список данных о файлах/папках текущей директории */
-    private ArrayList<Map<String, String>> list;
+    /** Результат работы */
+    private Object result;
 
     /** Слушатель завершения задачи */
     private CompleteListener cl;
@@ -83,7 +83,7 @@ public class RequestList extends AsyncTask {
             ArrayList<String> divList = splitList(body);
 
             // Парсятся нужные поля каждого элемента списка
-            list = makeMapList(divList, token, address);
+            result = makeMapList(divList, token, address);
         }
         // Выводится трейс для исключения
         catch (Exception e) {
@@ -105,7 +105,7 @@ public class RequestList extends AsyncTask {
         super.onPostExecute(o);
         try {
             // Уведомляется слушатель о завершении задачи, передается результат
-            cl.complete(this, list);
+            cl.complete(this, result);
         }
         // Выводится трейс для исключения
         catch (Exception e) {
