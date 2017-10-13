@@ -3,7 +3,6 @@ package com.merdeev.experiment;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -99,6 +98,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
+     * Nнициирует запрос структуры текущей директории облака {@link RequestList#RequestList(CompleteListener, String, String, String)}
+     */
+    private void doRequestList() {
+        new RequestList(this, resource, reference, offset);
+    }
+
+    /**
+     * Создает диалог для текущего Activity
+     * @param id идентификатор создаваемого диалога
+     * @return созданный диалог
+     */
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
+            case DIALOG_LIST:
+                // Создается builder для диалога
+                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+
+                // Устанавливается заголовок списка + смещение для информирования
+                adb.setTitle(list_title + offset);
+
+                // Формируется список имен
+                ArrayList<String> names = getNames(list);
+
+                // Создается адаптер для списка
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, names);
+
+                // Builder-ом устанавливается адаптер, нейтральная и негативная кнопки для диалога
+                // Выбор пункта обрабатывается текущим Activity
+                adb.setAdapter(adapter, this);
+                adb.setNeutralButton(R.string.cancel, this);
+                adb.setNegativeButton(R.string.back, this);
+
+                // Создание и возврат диалога
+                return adb.create();
+        }
+        return super.onCreateDialog(id);
+    }
+
+    /**
      * При выборе пункта диалога или нажатии кнопки диалога
      * @param dialogInterface диалог
      * @param i выбранный пункт
@@ -143,13 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
         }
-    }
-
-    /**
-     * Nнициирует запрос структуры текущей директории облака {@link RequestList#RequestList(CompleteListener, String, String, String)}
-     */
-    private void doRequestList() {
-        new RequestList(this, resource, reference, offset);
+        removeDialog(DIALOG_LIST);
     }
 
     /**
@@ -215,67 +249,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Создает диалог для текущего Activity
-     * @param id идентификатор создаваемого диалога
-     * @return созданный диалог
+     * Nнициирует отображение информации в отдельном Activity {@link ViewActivity}
+     * @param ser данные
+     * @throws Exception
      */
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
-            case DIALOG_LIST:
-                // Создается builder для диалога
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+    private void showContent(Ser ser) throws Exception {
+        // Создается intent
+        Intent intent = new Intent(this, ViewActivity.class);
 
-                // Устанавливается заголовок списка + смещение для информирования
-                adb.setTitle(list_title + offset);
+        // Сохраняются данные в intent для передачи создаваемому Activity
+        intent.putExtra("ser", ser);
 
-                // Формируется список имен
-                ArrayList<String> names = getNames(list);
-
-                // Создается адаптер для списка
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, names);
-
-                // Builder-ом устанавливается адаптер, нейтральная и негативная кнопки для диалога
-                // Выбор пункта обрабатывается текущим Activity
-                adb.setAdapter(adapter, this);
-                adb.setNeutralButton(R.string.cancel, this);
-                adb.setNegativeButton(R.string.back, this);
-
-                // Создание и возврат диалога
-                return adb.create();
-        }
-        return super.onCreateDialog(id);
-    }
-
-    /**
-     * Подготавливает диалог для текущего Activity
-     * @param id идентификатор подготавливаемого диалога
-     * @param dialog подготавливаемый диалог
-     */
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        super.onPrepareDialog(id, dialog);
-
-        switch (id) {
-            // Проверяется, что нужно подготовить диалог именно для списка файлов/папок текущей директории облака
-            case DIALOG_LIST:
-                // Преобразуется тип диалога к AlertDialog
-                AlertDialog aDialog = (AlertDialog) dialog;
-
-                // Обновляется заголовок списка
-                aDialog.setTitle(getResources().getString(R.string.list_title) + offset);
-
-                // Формируется список имен
-                ArrayList<String> names = getNames(list);
-
-                // Создается адаптер для списка
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, names);
-
-                // Устанавливается адаптер
-                aDialog.getListView().setAdapter(adapter);
-                break;
-        }
+        // Запускается Activity
+        startActivity(intent);
     }
 
     /**
@@ -293,21 +279,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             names.add((i).get("name"));
         }
         return names;
-    }
-
-    /**
-     * Nнициирует отображение информации в отдельном Activity {@link ViewActivity}
-     * @param ser данные
-     * @throws Exception
-     */
-    private void showContent(Ser ser) throws Exception {
-        // Создается intent
-        Intent intent = new Intent(this, ViewActivity.class);
-
-        // Сохраняются данные в intent для передачи создаваемому Activity
-        intent.putExtra("ser", ser);
-
-        // Запускается Activity
-        startActivity(intent);
     }
 }

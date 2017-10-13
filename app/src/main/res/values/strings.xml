@@ -1,10 +1,7 @@
 <resources>
     <string name="app_name">Experiment</string>
     <string name="btn_list">Get list</string>
-    <string name="resource">https://cloud.mail.ru/public/</string>
-    <string name="reference">6mMo/hyo9wksZC</string>
     <string name="list_title">path: root</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
-    <bool name="save_file">false</bool>
 </resources>

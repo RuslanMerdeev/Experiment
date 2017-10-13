@@ -113,6 +113,7 @@ public class Download extends AsyncTask {
                     // Сохраняется файл
                     saveBinaryFile(uc, contentLength, file);
                     result = new URI(file.getAbsolutePath());
+                    type = URI.class;
                     Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
                 }
                 // Проверяется, что нет необходимости сохранять файл
@@ -164,6 +165,16 @@ public class Download extends AsyncTask {
     }
 
     /**
+     * Создает/открывает файл в файловой системе в папке загрузок
+     * @param path путь до файла с расширением
+     * @return файл
+     * @throws Exception
+     */
+    private File createFile(String path) throws Exception {
+        return new File(Environment.getExternalStorageDirectory(), path);
+    }
+
+    /**
      * Получает имя файла по URL
      * @param url URL
      * @return имя файла
@@ -200,7 +211,7 @@ public class Download extends AsyncTask {
      * @return массив байт
      * @throws Exception
      */
-    byte[] saveByteArray(URLConnection uc, int contentLength) throws Exception {
+    private byte[] saveByteArray(URLConnection uc, int contentLength) throws Exception {
         InputStream in = new BufferedInputStream(uc.getInputStream());
         byte[] data = new byte[contentLength];
         int bytesRead;
@@ -264,16 +275,6 @@ public class Download extends AsyncTask {
 
         // Возвращается строка нужной кодировки
         return stream.toString("Cp1251");
-    }
-
-    /**
-     * Создает/открывает файл в файловой системе в папке загрузок
-     * @param path путь до файла с расширением
-     * @return файл
-     * @throws Exception
-     */
-    File createFile(String path) throws Exception {
-        return new File(Environment.getExternalStorageDirectory(), path);
     }
 
     /**

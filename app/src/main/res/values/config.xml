@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="resource">https://cloud.mail.ru/public/</string>
+    <string name="reference">6mMo/hyo9wksZC</string>
+    <bool name="save_file">false</bool>
+</resources>
