@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Основной начальный Activity,
+ * Основной Activity,
  * имеет кнопку для запроса структуры директории и текстовое поле для отображения полезной информации
  * @author R.Z.Merdeev
  */
@@ -58,6 +58,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Log.d(LOG, "mainActivity: onCreate");
 
+        // Nзвлекаются данные, переданные от вызывавшего Activity
+        Intent intent = getIntent();
+        Ser ser = (Ser) intent.getSerializableExtra("ser");
+
+        // Результат преобразуется к типу список данных
+        list = (ArrayList<Map<String, String>>) ser.resource;
+
         // Находится tvContent, ему устанавливается скроллинг
         tvContent = (TextView) findViewById(R.id.tvContent);
         tvContent.setMovementMethod(new ScrollingMovementMethod());
@@ -73,8 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         app_name = getResources().getString(R.string.app_name);
         save_file = getResources().getBoolean(R.bool.save_file);
 
-        // Nнициируется начальный запрос структуры корневой директории
-        doRequestList();
+        // Вызывается диалог
+        showDialog(DIALOG_LIST);
     }
 
     /**
@@ -245,6 +252,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Отображается содержание файла
             showContent(new Ser(result, type));
+        }
+        else {
+            Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown cc");
         }
     }
 
