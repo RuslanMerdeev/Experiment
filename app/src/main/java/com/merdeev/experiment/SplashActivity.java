@@ -26,6 +26,12 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     private String resource;
     private String reference;
 
+    /** Сегодняшняя ссылка */
+    private String reference_today;
+
+    /** Признак запроса сегодняшней ссылки */
+    private boolean today;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +42,8 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         resource = getResources().getString(R.string.resource);
         reference = getResources().getString(R.string.reference);
 
-        // Nнициируется начальный запрос структуры корневой директории
+        // Nнициируется запрос сегодняшней ссылки
+        today = true;
         new RequestList(this, resource, reference, "");
     }
 
@@ -60,17 +67,31 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         if (cc instanceof RequestList) {
             Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: RequestList");
 
-            // Создается intent
-            Intent intent = new Intent(this, MainActivity.class);
+            // Проверяется, что запрашивалась сегодняшняя ссылка
+            if (today) {
+                ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
+                reference_today = list.get(0).get("name");
+                reference_today = reference_today.replaceAll("_", "/");
 
-            // Сохраняются данные в intent для передачи создаваемому Activity
-            intent.putExtra("ser", new Ser(result, type));
+                // Nнициируется начальный запрос структуры корневой директории
+                today = false;
+                new RequestList(this, resource, reference_today, "");
+            }
+            // Проверяется, что запрашивалась структура корневой директории
+            else {
+                // Создается intent
+                Intent intent = new Intent(this, MainActivity.class);
 
-            // Запускается MainActivity
-            startActivity(intent);
+                // Сохраняются данные в intent для передачи создаваемому Activity
+                intent.putExtra("ser", new Ser(result, type));
+                intent.putExtra("reference", reference_today);
 
-            // Останавливается этот Activity
-            finish();
+                // Запускается MainActivity
+                startActivity(intent);
+
+                // Останавливается этот Activity
+                finish();
+            }
         }
         else {
             Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown cc");

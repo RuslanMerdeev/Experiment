@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Nзвлекаются данные, переданные от вызывавшего Activity
         Intent intent = getIntent();
         Ser ser = (Ser) intent.getSerializableExtra("ser");
+        reference = intent.getStringExtra("reference");
 
         // Результат преобразуется к типу список данных
         list = (ArrayList<Map<String, String>>) ser.resource;
@@ -76,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Забираются из ресурсов некоторые String для отображения и адресов
         list_title = getResources().getString(R.string.list_title);
         resource = getResources().getString(R.string.resource);
-        reference = getResources().getString(R.string.reference);
         app_name = getResources().getString(R.string.app_name);
         save_file = getResources().getBoolean(R.bool.save_file);
 
