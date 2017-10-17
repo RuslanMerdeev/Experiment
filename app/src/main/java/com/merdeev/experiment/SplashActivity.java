@@ -56,14 +56,14 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         // Проверяется, что источник вызова есть
         if (cc == null) {
             Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: сс: null");
-            showDialog(DIALOG_ERROR);
+            showError(DIALOG_ERROR);
             return;
         }
 
         // Проверяется, что результат есть
         if (result == null) {
             Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: result: null");
-            showDialog(DIALOG_ERROR);
+            showError(DIALOG_ERROR);
             return;
         }
 
@@ -103,7 +103,7 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
                 return;
             }
 
-            // Проверяется, что тип результата
+            // Проверяется, что тип результата текст
             if (type == String.class) {
                 // Определяется сегодняшняя ссылка
                 reference_today = Download.createTextFromByteArray((byte[]) result);
@@ -114,12 +114,12 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
             }
             else {
                 Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown type");
-                showDialog(DIALOG_ERROR);
+                showError(DIALOG_ERROR);
             }
         }
         else {
             Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown cc");
-            showDialog(DIALOG_ERROR);
+            showError(DIALOG_ERROR);
         }
     }
 
@@ -145,5 +145,14 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     @Override
     public void onClick(DialogInterface dialogInterface, int i) {
         finish();
+    }
+
+    /**
+     * Создает диалог для отображения ошибки заново
+     * @param i идентификатор диалога
+     */
+    private void showError(int i) {
+        removeDialog(i);
+        showDialog(i);
     }
 }

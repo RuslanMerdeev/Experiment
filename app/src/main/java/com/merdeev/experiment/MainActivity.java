@@ -47,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String app_name;
     private boolean save_file;
 
+    /** Признак загрузки файла, содержащего ссылку */
+    private boolean ref;
+
     /**
      * При создании основного Activity
      * @param savedInstanceState
@@ -80,8 +83,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         app_name = getResources().getString(R.string.app_name);
         save_file = getResources().getBoolean(R.bool.save_file);
 
-        // Вызывается диалог
-        showDialog(DIALOG_LIST);
+        // Отображается список
+        showList(DIALOG_LIST);
     }
 
     /**
@@ -175,12 +178,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 HashMap<String,String> map = (HashMap<String,String>)list.get(i);
 
                 // Добавляется шаг смещения по имени папки
-                String elem = "/" + map.get("name");
-                offset = offset + elem;
+                String name = map.get("name");
+                offset = offset + "/" + name;
 
                 // Проверяется, что тип выбранного пункта - файл
                 if (map.get("type").equals("file")) {
-                    // инициируется загрузка файла
+                    // Проверяется, что имя файла имеет признак содержания ссылки
+                    if (name.equals("prev.txt") || name.equals("next.txt")) ref = true;
+                    else ref = false;
+
+                    // Nнициируется загрузка файла
                     Download.doDownload(this, map, reference, offset, save_file, app_name);
                 }
                 // Тип выбранного пункта - папка
@@ -190,7 +197,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
         }
-        removeDialog(DIALOG_LIST);
     }
 
     /**
@@ -222,8 +228,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Результат преобразуется к типу список данных
             list = (ArrayList<Map<String, String>>) result;
 
-            // Вызывается диалог
-            showDialog(DIALOG_LIST);
+            // Отображается список
+            showList(DIALOG_LIST);
         }
         // Проверяется, что источник - объект класса Download
         else if (cc instanceof Download) {
@@ -241,12 +247,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 tvContent.setText(text);
             }
 
-            // Отображается содержание файла
-            showContent(new Ser(result, type));
+            // Проверяется, что загружался файл с признаком содержания ссылки
+            if (ref) {
+                // Проверяется, что тип результата текст
+                if (type == String.class) {
+                    // Определяется сегодняшняя ссылка
+                    reference = Download.createTextFromByteArray((byte[]) result);
+
+                    // Nнициируется запрос структуры корневой директории
+                    offset = "";
+                    new RequestList(this, resource, reference, offset);
+                }
+                else Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown type");
+            }
+            else {
+                // Отображается содержание файла
+                showContent(new Ser(result, type));
+            }
         }
-        else {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown cc");
-        }
+        else Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown cc");
+    }
+
+    /**
+     * Создает диалог для отображения списка заново
+     * @param i идентификатор диалога
+     */
+    private void showList(int i) {
+        removeDialog(i);
+        showDialog(i);
     }
 
     /**
