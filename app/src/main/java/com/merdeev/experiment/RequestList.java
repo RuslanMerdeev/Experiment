@@ -15,7 +15,7 @@ import java.util.Map;
  * Nнициирует запрос на сервер облака для составления списка данных файлов/папок директории
  * @author R.Z.Merdeev
  */
-public class RequestList extends AsyncTask {
+class RequestList extends AsyncTask {
     /** Данные из ресурсов */
     private String resource;
     private String reference;
@@ -39,7 +39,7 @@ public class RequestList extends AsyncTask {
      */
     RequestList(CompleteListener cl, String resource, String reference, String offset) {
         // Проверяется, тот ли это ресурс, который ожидаем
-        if (resource.contains("mail.ru") == false) return;
+        if (!resource.contains("mail.ru")) return;
 
         // Сохраняются переданные параметры
         this.resource = resource;
@@ -48,13 +48,15 @@ public class RequestList extends AsyncTask {
         this.cl = cl;
 
         // Запускается асинхронная задача
-        this.execute();
+        if (this.execute() == null) {
+            Log.d(MainActivity.LOG, "requestList: constructor: can't execute AsyncTask");
+        }
     }
 
     /**
      * Выполняет фоновую работу по запросу и составлению списка
-     * @param objects
-     * @return
+     * @param objects массив объектов
+     * @return объект
      */
     @Override
     protected Object doInBackground(Object[] objects) {
@@ -98,7 +100,7 @@ public class RequestList extends AsyncTask {
 
     /**
      * Уведомляет слушателя об окончании выполнения задачи и отдает результат
-     * @param o
+     * @param o объект
      */
     @Override
     protected void onPostExecute(Object o) {
@@ -121,14 +123,14 @@ public class RequestList extends AsyncTask {
      * Составляет простой список всех элементов директории облака из сырых данных
      * @param text сырые данные
      * @return простой список
-     * @throws Exception
+     * @throws Exception исключение
      */
     private ArrayList<String> splitList(String text) throws Exception {
         // Создается список для элементов
         ArrayList<String> al = new ArrayList<>();
 
         // Проверяется, отсутствуют ли в сырых данных кавычки для определения пустого списка
-        if(text.contains("\"") == false) return al;
+        if(!text.contains("\"")) return al;
 
         // Отбрасываются ненужные символы в конце и в начале данных
         text = text.substring(text.indexOf("\""), text.lastIndexOf("\"") + 1);
@@ -151,7 +153,7 @@ public class RequestList extends AsyncTask {
      * @param token текущий token
      * @param address адрес ресурсов для предпросмотра
      * @return список данных
-     * @throws Exception
+     * @throws Exception исключение
      */
     private ArrayList<Map<String, String>> makeMapList(ArrayList<String> list, String token, String address) throws Exception {
         // Создается список данных для элементов
@@ -196,7 +198,7 @@ public class RequestList extends AsyncTask {
      * Находит и возвращает token из сырых данных
      * @param text сырые данные
      * @return token
-     * @throws Exception
+     * @throws Exception исключение
      */
     private String findToken(String text) throws Exception {
         String token;
@@ -210,7 +212,7 @@ public class RequestList extends AsyncTask {
      * Находит и возвращает address из сырых данных
      * @param text сырые данные
      * @return address
-     * @throws Exception
+     * @throws Exception исключение
      */
     private String findAddress(String text) throws Exception {
         String address;

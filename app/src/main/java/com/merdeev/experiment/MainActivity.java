@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * При создании основного Activity
-     * @param savedInstanceState
+     * @param savedInstanceState параметр
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -202,8 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Проверяется, что тип выбранного пункта - файл
                 if (map.get("type").equals("file")) {
                     // Проверяется, что имя файла имеет признак содержания ссылки
-                    if (name.equals("prev.txt") || name.equals("next.txt")) ref = true;
-                    else ref = false;
+                    ref = (name.equals("prev.txt") || name.equals("next.txt"));
 
                     // Nнициируется загрузка файла
                     doDownload(map);
@@ -223,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param cc источник вызова, объект класса
      * @param result результат, произвольные данные
      * @param type тип данных
-     * @throws Exception
+     * @throws Exception исключение
      */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {
@@ -273,12 +271,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (type == String.class) {
                     // Определяется сегодняшняя ссылка
                     reference = Download.createTextFromByteArray((byte[]) result);
-
-                    // Nнициируется запрос структуры корневой директории
-                    offset = "";
-                    new RequestList(this, resource, reference, offset);
+                }
+                // Проверяется, что тип результата ссылка на файл
+                else if (type == URI.class) {
+                    // Определяется сегодняшняя ссылка
+                    reference = Download.createTextFromFile((URI) result);
                 }
                 else Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown type");
+
+                // Nнициируется запрос структуры корневой директории
+                offset = "";
+                new RequestList(this, resource, reference, offset);
             }
             else {
                 // Отображается содержание файла
@@ -320,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Nнициирует отображение информации в отдельном Activity {@link ViewActivity}
      * @param ser данные
-     * @throws Exception
+     * @throws Exception исключение
      */
     private void showContent(Ser ser) throws Exception {
         // Создается intent
@@ -345,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Для всех элементов списка данных
         for (Map<String, String> i : list) {
             // Получается имя файла/папки и добавляется в список
-            names.add((i).get("name"));
+            names.add(i.get("name"));
         }
         return names;
     }

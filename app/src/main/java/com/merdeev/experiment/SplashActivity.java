@@ -7,9 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +35,7 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
 
     /**
      * При создании начального Activity
-     * @param savedInstanceState
+     * @param savedInstanceState параметр
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +59,7 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      * @param cc источник вызова, объект класса
      * @param result результат, произвольные данные
      * @param type тип данных
-     * @throws Exception
+     * @throws Exception исключение
      */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {

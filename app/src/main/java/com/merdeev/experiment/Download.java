@@ -17,13 +17,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
 
 /**
  * Загружает файл в файловую систему
  * @author R.Z.Merdeev
  */
-public class Download extends AsyncTask {
+class Download extends AsyncTask {
 
     /** Слушатель завершения задачи */
     private CompleteListener cl;
@@ -54,9 +53,9 @@ public class Download extends AsyncTask {
      * @param app_name название приложения
      * @param save режим загрузки
      */
-    public Download(CompleteListener cl, String url, String app_name, boolean save) {
+    Download(CompleteListener cl, String url, String app_name, boolean save) {
         // Проверяется, тот ли это url, который ожидаем
-        if (url.contains("mail.ru") == false) return;
+        if (!url.contains("mail.ru")) return;
 
         // Сохраняются переданные параметры
         this.cl = cl;
@@ -65,13 +64,15 @@ public class Download extends AsyncTask {
         this.app_name = app_name;
 
         // Запускается асинхронная задача
-        this.execute();
+        if (this.execute() == null) {
+            Log.d(MainActivity.LOG, "download: constructor: can't execute AsyncTask");
+        }
     }
 
     /**
      * Выполняет фоновую работу по загрузке файла
-     * @param objects
-     * @return
+     * @param objects массив объектов
+     * @return объект
      */
     @Override
     protected Object doInBackground(Object[] objects) {
@@ -105,7 +106,7 @@ public class Download extends AsyncTask {
                     // Создается подпапка в папке хранения файла
                     String path = app_name;
                     File f = createFile(path);
-                    f.mkdirs();
+                    if (f.mkdirs()) {}
 
                     // Создается файл в файловой системе для сохранения загружаемого файла
                     path = path + "/" + getFileName(u) + contentType;
@@ -146,7 +147,7 @@ public class Download extends AsyncTask {
 
     /**
      * Уведомляет слушателя об окончании выполнения задачи и отдает результат
-     * @param o
+     * @param o объект
      */
     @Override
     protected void onPostExecute(Object o) {
@@ -169,7 +170,7 @@ public class Download extends AsyncTask {
      * Создает/открывает файл в файловой системе в папке загрузок
      * @param path путь до файла с расширением
      * @return файл
-     * @throws Exception
+     * @throws Exception исключение
      */
     private File createFile(String path) throws Exception {
         return new File(Environment.getExternalStorageDirectory(), path);
@@ -179,7 +180,7 @@ public class Download extends AsyncTask {
      * Получает имя файла по URL
      * @param url URL
      * @return имя файла
-     * @throws Exception
+     * @throws Exception исключение
      */
     private String getFileName(URL url) throws Exception {
         // Определяется полное имя файла по URL
@@ -210,7 +211,7 @@ public class Download extends AsyncTask {
      * @param uc открытое соединение
      * @param contentLength размер файла
      * @return массив байт
-     * @throws Exception
+     * @throws Exception исключение
      */
     private byte[] saveByteArray(URLConnection uc, int contentLength) throws Exception {
         InputStream in = new BufferedInputStream(uc.getInputStream());
@@ -238,7 +239,7 @@ public class Download extends AsyncTask {
      * @param uc открытое соединение
      * @param contentLength размер файла
      * @param fileName файл хранения
-     * @throws Exception
+     * @throws Exception исключение
      */
     private void saveBinaryFile(URLConnection uc, int contentLength, File fileName) throws Exception {
         byte[] data = saveByteArray(uc, contentLength);
@@ -253,13 +254,13 @@ public class Download extends AsyncTask {
      * Создает Bitmap из массива байт
      * @param b массив байт
      * @return bitmap
-     * @throws Exception
+     * @throws Exception исключение
      */
     static Bitmap createBitmapFromByteArray(byte[] b) throws Exception {
         // Массив байт преобразуется в ByteArrayInputStream
         ByteArrayInputStream stream = new ByteArrayInputStream(b);
-//        InputStream is = new BufferedInputStream(stream);
-        // Возвращается Ишеьфз
+
+        // Возвращается Bitmap
         return BitmapFactory.decodeStream(stream);
     }
 
@@ -267,7 +268,7 @@ public class Download extends AsyncTask {
      * Создает текст из массива байт
      * @param b массив байт
      * @return текст
-     * @throws Exception
+     * @throws Exception исключение
      */
     static String createTextFromByteArray(byte[] b) throws Exception {
         // Массив байт преобразуется в ByteArrayOutputStream
@@ -282,7 +283,7 @@ public class Download extends AsyncTask {
      * Возвращает Bitmap из файла в файловой системе в папке загрузок
      * @param uri ссылка на файл
      * @return bitmap
-     * @throws Exception
+     * @throws Exception исключение
      */
     static Bitmap createBitmapFromFile(URI uri) throws Exception {
         return BitmapFactory.decodeStream(new BufferedInputStream(new FileInputStream(uri.getPath())));
@@ -292,23 +293,23 @@ public class Download extends AsyncTask {
      * Возвращает строку текста из файла в файловой системе в папке загрузок
      * @param uri ссылка на файл
      * @return строка
-     * @throws Exception
+     * @throws Exception исключение
      */
     static String createTextFromFile(URI uri) throws Exception {
-        // Создается inputstream из файла
+        // Создается InputStream из файла
         InputStream is = new BufferedInputStream(new FileInputStream(uri.getPath()));
 
         // Создается ByteArrayOutputStream объект
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
         // В него считываются данные из файла
         int b;
         while ((b = is.read()) != -1) {
-            baos.write(b);
+            stream.write(b);
         }
         is.close();
 
         // Возвращается строка нужной кодировки
-        return baos.toString("Cp1251");
+        return stream.toString("Cp1251");
     }
 }

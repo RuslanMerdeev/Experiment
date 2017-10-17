@@ -6,12 +6,12 @@ import java.io.Serializable;
  * Упаковывает данные для передачи между Activity
  * @author R.Z.Merdeev
  */
-public class Ser implements Serializable {
+class Ser implements Serializable {
     /** Ресурс данных */
-    Object resource;
+    final Object resource;
 
     /** Тип данных */
-    Class type;
+    final Class type;
 
     /**
      * Коструктор,
@@ -19,7 +19,7 @@ public class Ser implements Serializable {
      * @param resource ресурс данных
      * @param type тип данных
      */
-    public Ser(Object resource, Class type) {
+    Ser(Object resource, Class type) {
         // Сохраняются переданные параметры
         this.resource = resource;
         this.type = type;

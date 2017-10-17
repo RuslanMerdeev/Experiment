@@ -23,7 +23,7 @@ public class ViewActivity extends AppCompatActivity {
 
     /**
      * При создании Activity
-     * @param savedInstanceState
+     * @param savedInstanceState параметр
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +58,7 @@ public class ViewActivity extends AppCompatActivity {
 
                     default:
                         Log.d(MainActivity.LOG, "viewActivity: onCreate: unknown file type");
-                        return;
+                        break;
                 }
             }
             // Проверяется, что тип данных - Bitmap
@@ -94,9 +94,9 @@ public class ViewActivity extends AppCompatActivity {
     /**
      * Добавляет в layout текущего Activity картинку
      * @param resource ресурс картинки
-     * @throws Exception
+     * @throws Exception исключение
      */
-    void showImage(Object resource) throws Exception {
+    private void showImage(Object resource) throws Exception {
         // Создается inflater
         LayoutInflater ltInflater = getLayoutInflater();
 
@@ -132,9 +132,9 @@ public class ViewActivity extends AppCompatActivity {
     /**
      * Добавляет в layout текущего Activity текст
      * @param resource ресурс текста
-     * @throws Exception
+     * @throws Exception исключение
      */
-    void showText(Object resource) throws Exception {
+    private void showText(Object resource) throws Exception {
         // Создается inflater
         LayoutInflater ltInflater = getLayoutInflater();
 
