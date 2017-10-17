@@ -69,21 +69,6 @@ public class Download extends AsyncTask {
     }
 
     /**
-     * Формирует адрес загрузки и
-     * инициирует загрузку файла {@link Download#Download(CompleteListener, String, String, boolean)}
-     * @param cl слушатель завершения
-     * @param map данные для скачивания
-     * @param reference ссылка на корневую директорию
-     * @param offset смещение относительно корневой директории
-     * @param save_file необходимость сохранить файл
-     * @param app_name название приложения
-     */
-    static void doDownload(CompleteListener cl, HashMap<String,String> map, String reference, String offset, boolean save_file, String app_name) {
-        String address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
-        new Download(cl, address, app_name, save_file);
-    }
-
-    /**
      * Выполняет фоновую работу по загрузке файла
      * @param objects
      * @return

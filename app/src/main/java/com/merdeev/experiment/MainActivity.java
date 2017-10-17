@@ -1,6 +1,7 @@
 package com.merdeev.experiment;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /** Nдентификатор диалога для списка имен файлов/папок текущей директории */
     private final int DIALOG_LIST = 1;
+
+    /** Nдентификатор диалога прогресса */
+    private final int DIALOG_PROGRESS = 2;
 
     /** Текстовое поле для отображения полезной информации */
     private TextView tvContent;
@@ -111,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Nнициирует запрос структуры текущей директории облака {@link RequestList#RequestList(CompleteListener, String, String, String)}
      */
     private void doRequestList() {
+        showDialog(DIALOG_PROGRESS);
         new RequestList(this, resource, reference, offset);
     }
 
@@ -144,6 +150,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 // Создание и возврат диалога
                 return adb.create();
+
+            case DIALOG_PROGRESS:
+                // Создается диалог прогресса
+                ProgressDialog pd = new ProgressDialog(this);
+
+                // Устанавливается заголовок списка + смещение для информирования
+                pd.setMessage("Загрузка...");
+
+                // Отображается диалог
+                pd.show();
+
+                return pd;
         }
         return super.onCreateDialog(id);
     }
@@ -188,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     else ref = false;
 
                     // Nнициируется загрузка файла
-                    Download.doDownload(this, map, reference, offset, save_file, app_name);
+                    doDownload(map);
                 }
                 // Тип выбранного пункта - папка
                 else {
@@ -209,6 +227,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {
+        removeDialog(DIALOG_PROGRESS);
+
         // Проверяется, что источник вызова есть
         if (cc == null) {
             Log.d(LOG, "mainActivity: asCompleteListener: complete: сс: null");
@@ -269,7 +289,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Создает диалог для отображения списка заново
+     * Формирует адрес загрузки и
+     * @param map данные для скачивания
+     * @param reference ссылка на корневую директорию
+     * @param offset смещение относительно корневой директории
+     * @return текст URL
+     */
+    static String createURLText(HashMap<String,String> map, String reference, String offset) {
+        return "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
+    }
+
+    /**
+     * Nнициирует загрузку файла {@link Download#Download(CompleteListener, String, String, boolean)}
+     * @param map данные для скачивания
+     */
+    private void doDownload(HashMap<String,String> map) {
+        showDialog(DIALOG_PROGRESS);
+        new Download(this, createURLText(map, reference, offset), app_name, save_file);
+    }
+
+    /**
+     * Создает заново диалог для отображения списка
      * @param i идентификатор диалога
      */
     private void showList(int i) {

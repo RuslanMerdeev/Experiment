@@ -35,6 +35,10 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     /** Признак запроса сегодняшней ссылки */
     private boolean today;
 
+    /**
+     * При создании начального Activity
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +55,14 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         new RequestList(this, resource, reference, "");
     }
 
+    /**
+     * Определяет источник вызова и
+     * обрабатывает данные {@link CompleteListener}
+     * @param cc источник вызова, объект класса
+     * @param result результат, произвольные данные
+     * @param type тип данных
+     * @throws Exception
+     */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {
         // Проверяется, что источник вызова есть
@@ -73,9 +85,10 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
 
             // Проверяется, что запрашивалась сегодняшняя ссылка
             if (today) {
+                // Nнициируется загрузка последнего файла
                 ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
                 HashMap<String, String> map = (HashMap<String, String>) list.get(list.size()-1);
-                Download.doDownload(this, map, reference, "/" + map.get("name"), false, app_name);
+                new Download(this, MainActivity.createURLText(map, reference, "/" + map.get("name")), app_name, false);
             }
             // Проверяется, что запрашивалась структура корневой директории
             else {
@@ -123,6 +136,11 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         }
     }
 
+    /**
+     * Создает диалог для текущего Activity
+     * @param id идентификатор создаваемого диалога
+     * @return созданный диалог
+     */
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
@@ -142,13 +160,18 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         return super.onCreateDialog(id);
     }
 
+    /**
+     * При нажатии кнопки диалога
+     * @param dialogInterface диалог
+     * @param i выбранный пункт
+     */
     @Override
     public void onClick(DialogInterface dialogInterface, int i) {
         finish();
     }
 
     /**
-     * Создает диалог для отображения ошибки заново
+     * Создает заново диалог для отображения ошибки
      * @param i идентификатор диалога
      */
     private void showError(int i) {
