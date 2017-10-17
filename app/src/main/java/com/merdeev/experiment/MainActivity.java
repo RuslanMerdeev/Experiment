@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Проверяется, что тип выбранного пункта - файл
                 if (map.get("type").equals("file")) {
                     // инициируется загрузка файла
-                    doDownload(map);
+                    Download.doDownload(this, map, reference, offset, save_file, app_name);
                 }
                 // Тип выбранного пункта - папка
                 else {
@@ -191,15 +191,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
         removeDialog(DIALOG_LIST);
-    }
-
-    /**
-     * Формирует адрес загрузки и
-     * инициирует загрузку файла {@link Download#Download(CompleteListener, String, String, boolean)}
-     */
-    private void doDownload(HashMap<String,String> map) {
-        String address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
-        new Download(this, address, app_name, save_file);
     }
 
     /**

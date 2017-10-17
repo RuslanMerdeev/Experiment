@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 
 /**
  * Загружает файл в файловую систему
@@ -33,10 +34,10 @@ public class Download extends AsyncTask {
     /** Результат работы */
     private Object result;
 
-    /** Тип езультата работы */
+    /** Тип результата работы */
     private Class type;
 
-    /** Данные из ресурсов */
+    /** Имя приложения для создания папки */
     private String app_name;
 
     /** Максимальный размер загружаемого файла */
@@ -65,6 +66,21 @@ public class Download extends AsyncTask {
 
         // Запускается асинхронная задача
         this.execute();
+    }
+
+    /**
+     * Формирует адрес загрузки и
+     * инициирует загрузку файла {@link Download#Download(CompleteListener, String, String, boolean)}
+     * @param cl слушатель завершения
+     * @param map данные для скачивания
+     * @param reference ссылка на корневую директорию
+     * @param offset смещение относительно корневой директории
+     * @param save_file необходимость сохранить файл
+     * @param app_name название приложения
+     */
+    static void doDownload(CompleteListener cl, HashMap<String,String> map, String reference, String offset, boolean save_file, String app_name) {
+        String address = "https://" + map.get("address") + ".datacloudmail.ru/weblink/view/" + reference + offset + "?etag=" + map.get("hash") + "&key=" + map.get("token");
+        new Download(cl, address, app_name, save_file);
     }
 
     /**

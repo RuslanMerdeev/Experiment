@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,6 +27,7 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     /** Данные из ресурсов */
     private String resource;
     private String reference;
+    private String app_name;
 
     /** Сегодняшняя ссылка */
     private String reference_today;
@@ -41,6 +44,7 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         // Забираются из ресурсов некоторые String для отображения и адресов
         resource = getResources().getString(R.string.resource);
         reference = getResources().getString(R.string.reference);
+        app_name = getResources().getString(R.string.app_name);
 
         // Nнициируется запрос сегодняшней ссылки
         today = true;
@@ -70,12 +74,8 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
             // Проверяется, что запрашивалась сегодняшняя ссылка
             if (today) {
                 ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
-                reference_today = list.get(0).get("name");
-                reference_today = reference_today.replaceAll("_", "/");
-
-                // Nнициируется начальный запрос структуры корневой директории
-                today = false;
-                new RequestList(this, resource, reference_today, "");
+                HashMap<String, String> map = (HashMap<String, String>) list.get(list.size()-1);
+                Download.doDownload(this, map, reference, "/" + map.get("name"), false, app_name);
             }
             // Проверяется, что запрашивалась структура корневой директории
             else {
@@ -91,6 +91,30 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
 
                 // Останавливается этот Activity
                 finish();
+            }
+        }
+        // Проверяется, что источник - объект класса Download
+        else if (cc instanceof Download) {
+            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: Download");
+
+            // Проверяется, что тип результата есть
+            if (type == null) {
+                Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: type: null");
+                return;
+            }
+
+            // Проверяется, что тип результата
+            if (type == String.class) {
+                // Определяется сегодняшняя ссылка
+                reference_today = Download.createTextFromByteArray((byte[]) result);
+
+                // Nнициируется начальный запрос структуры корневой директории
+                today = false;
+                new RequestList(this, resource, reference_today, "");
+            }
+            else {
+                Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown type");
+                showDialog(DIALOG_ERROR);
             }
         }
         else {
