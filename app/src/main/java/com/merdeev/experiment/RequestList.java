@@ -38,8 +38,13 @@ class RequestList extends AsyncTask {
      * @param offset смещение для запроса
      */
     RequestList(CompleteListener cl, String resource, String reference, String offset) {
+        Trace.save("requestList: constructor");
+
         // Проверяется, тот ли это ресурс, который ожидаем
-        if (!resource.contains("mail.ru")) return;
+        if (!resource.contains("mail.ru")) {
+            Trace.save("requestList: constructor: wrong resource");
+            return;
+        }
 
         // Сохраняются переданные параметры
         this.resource = resource;
@@ -49,7 +54,7 @@ class RequestList extends AsyncTask {
 
         // Запускается асинхронная задача
         if (this.execute() == null) {
-            Log.d(MainActivity.LOG, "requestList: constructor: can't execute AsyncTask");
+            Trace.save("requestList: constructor: can't execute AsyncTask");
         }
     }
 
@@ -60,7 +65,7 @@ class RequestList extends AsyncTask {
      */
     @Override
     protected Object doInBackground(Object[] objects) {
-        Log.d(MainActivity.LOG, "requestList: doInBackground");
+        Trace.save("requestList: doInBackground");
         try {
             // Открывается соединение
             Connection con = Jsoup.connect(resource+reference+offset);
@@ -89,10 +94,10 @@ class RequestList extends AsyncTask {
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Trace.save("requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
-                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
         }
         return null;
@@ -111,10 +116,10 @@ class RequestList extends AsyncTask {
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Trace.save("requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
-                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
         }
     }
@@ -126,6 +131,8 @@ class RequestList extends AsyncTask {
      * @throws Exception исключение
      */
     private ArrayList<String> splitList(String text) throws Exception {
+        Trace.save("requestList: splitList");
+
         // Создается список для элементов
         ArrayList<String> al = new ArrayList<>();
 
@@ -156,6 +163,8 @@ class RequestList extends AsyncTask {
      * @throws Exception исключение
      */
     private ArrayList<Map<String, String>> makeMapList(ArrayList<String> list, String token, String address) throws Exception {
+        Trace.save("requestList: makeMapList");
+
         // Создается список данных для элементов
         ArrayList<Map<String, String>> mapArrayList = new ArrayList<>();
 

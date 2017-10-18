@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,16 +40,20 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(MainActivity.LOG, "splashActivity: onCreate");
-
         // Забираются из ресурсов некоторые String для отображения и адресов
         resource = getResources().getString(R.string.resource);
         reference = getResources().getString(R.string.reference);
         app_name = getResources().getString(R.string.app_name);
 
+        // Создается трейсер
+        new Trace(app_name, "log.txt");
+
+        Trace.save("splashActivity: onCreate");
+
         // Nнициируется запрос сегодняшней ссылки
         today = true;
         new RequestList(this, resource, reference, "");
+
     }
 
     /**
@@ -63,23 +66,25 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {
+        Trace.save("splashActivity: complete");
+
         // Проверяется, что источник вызова есть
         if (cc == null) {
-            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: сс: null");
+            Trace.save("splashActivity: complete: сс: null");
             showError(DIALOG_ERROR);
             return;
         }
 
         // Проверяется, что результат есть
         if (result == null) {
-            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: result: null");
+            Trace.save("splashActivity: complete: result: null");
             showError(DIALOG_ERROR);
             return;
         }
 
         // Проверяется, что источник - объект класса RequestList
         if (cc instanceof RequestList) {
-            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: RequestList");
+            Trace.save("splashActivity: complete: RequestList");
 
             // Проверяется, что запрашивалась сегодняшняя ссылка
             if (today) {
@@ -106,11 +111,11 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         }
         // Проверяется, что источник - объект класса Download
         else if (cc instanceof Download) {
-            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: Download");
+            Trace.save("splashActivity: complete: Download");
 
             // Проверяется, что тип результата есть
             if (type == null) {
-                Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: type: null");
+                Trace.save("splashActivity: complete: type: null");
                 return;
             }
 
@@ -124,12 +129,12 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
                 new RequestList(this, resource, reference_today, "");
             }
             else {
-                Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown type");
+                Trace.save("splashActivity: complete: unknown type");
                 showError(DIALOG_ERROR);
             }
         }
         else {
-            Log.d(MainActivity.LOG, "splashActivity: asCompleteListener: complete: unknown cc");
+            Trace.save("splashActivity: complete: unknown cc");
             showError(DIALOG_ERROR);
         }
     }
@@ -144,6 +149,8 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         switch (id) {
             // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
             case DIALOG_ERROR:
+                Trace.save("splashActivity: onCreateDialog: dialog_error");
+
                 // Создается builder для диалога
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
 
@@ -165,6 +172,8 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      */
     @Override
     public void onClick(DialogInterface dialogInterface, int i) {
+        Trace.save("splashActivity: onClick");
+
         finish();
     }
 
@@ -173,6 +182,8 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      * @param i идентификатор диалога
      */
     private void showError(int i) {
+        Trace.save("splashActivity: showError");
+
         removeDialog(i);
         showDialog(i);
     }

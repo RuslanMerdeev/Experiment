@@ -30,7 +30,7 @@ public class ViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view);
 
-        Log.d(MainActivity.LOG, "viewActivity: onCreate");
+        Trace.save("viewActivity: onCreate");
 
         try {
             // Nзвлекаются данные, переданные от вызывавшего Activity
@@ -39,6 +39,8 @@ public class ViewActivity extends AppCompatActivity {
 
             // Проверяется, что тип данных - URI
             if (ser.type == URI.class) {
+                Trace.save("viewActivity: onCreate: uri");
+
                 // Определяется URI
                 URI uri = (URI) ser.resource;
 
@@ -57,12 +59,14 @@ public class ViewActivity extends AppCompatActivity {
                         break;
 
                     default:
-                        Log.d(MainActivity.LOG, "viewActivity: onCreate: unknown file type");
+                        Trace.save("viewActivity: onCreate: unknown file type");
                         break;
                 }
             }
             // Проверяется, что тип данных - Bitmap
             else if (ser.type == Bitmap.class) {
+                Trace.save("viewActivity: onCreate: bitmap");
+
                 // Определяется Bitmap
                 Bitmap bitmap = Download.createBitmapFromByteArray((byte[]) ser.resource);
 
@@ -71,6 +75,8 @@ public class ViewActivity extends AppCompatActivity {
             }
             // Проверяется, что тип данных - String
             else if (ser.type == String.class) {
+                Trace.save("viewActivity: onCreate: string");
+
                 // Определяется текст
                 String text = Download.createTextFromByteArray((byte[]) ser.resource);
 
@@ -78,15 +84,15 @@ public class ViewActivity extends AppCompatActivity {
                 showText(text);
             }
             else {
-                Log.d(MainActivity.LOG, "viewActivity: onCreate: unknown resource");
+                Trace.save("viewActivity: onCreate: unknown resource");
             }
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "viewActivity: onCreate: " + e.getClass() + ": " + e.getMessage());
+            Trace.save("viewActivity: onCreate: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
-                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
         }
     }
@@ -97,6 +103,8 @@ public class ViewActivity extends AppCompatActivity {
      * @throws Exception исключение
      */
     private void showImage(Object resource) throws Exception {
+        Trace.save("viewActivity: showImage");
+
         // Создается inflater
         LayoutInflater ltInflater = getLayoutInflater();
 
@@ -120,7 +128,7 @@ public class ViewActivity extends AppCompatActivity {
             iv.setImageBitmap((Bitmap) resource);
         }
         else {
-            Log.d(MainActivity.LOG, "viewActivity: showImage: unknown resource");
+            Trace.save("viewActivity: showImage: unknown resource");
             return;
         }
 
@@ -135,6 +143,8 @@ public class ViewActivity extends AppCompatActivity {
      * @throws Exception исключение
      */
     private void showText(Object resource) throws Exception {
+        Trace.save("viewActivity: showText");
+
         // Создается inflater
         LayoutInflater ltInflater = getLayoutInflater();
 
@@ -159,7 +169,7 @@ public class ViewActivity extends AppCompatActivity {
             tv.setText((String) resource);
         }
         else {
-            Log.d(MainActivity.LOG, "viewActivity: showText: unknown resource");
+            Trace.save("viewActivity: showText: unknown resource");
             return;
         }
 

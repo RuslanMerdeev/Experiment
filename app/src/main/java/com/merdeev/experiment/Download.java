@@ -54,6 +54,8 @@ class Download extends AsyncTask {
      * @param save режим загрузки
      */
     Download(CompleteListener cl, String url, String app_name, boolean save) {
+        Trace.save("download: constructor");
+
         // Проверяется, тот ли это url, который ожидаем
         if (!url.contains("mail.ru")) return;
 
@@ -65,7 +67,7 @@ class Download extends AsyncTask {
 
         // Запускается асинхронная задача
         if (this.execute() == null) {
-            Log.d(MainActivity.LOG, "download: constructor: can't execute AsyncTask");
+            Trace.save("download: constructor: can't execute AsyncTask");
         }
     }
 
@@ -76,7 +78,7 @@ class Download extends AsyncTask {
      */
     @Override
     protected Object doInBackground(Object[] objects) {
-        Log.d(MainActivity.LOG, "download: doInBackground");
+        Trace.save("download: doInBackground");
 
         try {
             // Создается URL по ссылке на скачивание
@@ -90,12 +92,12 @@ class Download extends AsyncTask {
             // Сохраняются параметры загруженного файла
             String contentType = uc.getContentType();
             int contentLength = uc.getContentLength();
-            Log.d(MainActivity.LOG, "download: doInBackground: file: type = \"" + contentType + "\", length = " + contentLength);
+            Trace.save("download: doInBackground: file: type = \"" + contentType + "\", length = " + contentLength);
 
             // Определяется расширение загруженного файла по его типу
             contentType = getExtension(contentType);
             if (contentType == null) {
-                Log.d(MainActivity.LOG, "download: doInBackground: unknown file type");
+                Trace.save("download: doInBackground: unknown file type");
                 return null;
             }
 
@@ -103,10 +105,8 @@ class Download extends AsyncTask {
             if (contentLength < MAX_SIZE) {
                 // Проверяется, что необходимо сохранить файл в файловой системе
                 if (save) {
-                    // Создается подпапка в папке хранения файла
+                    // Путь - папке с именем приложения
                     String path = app_name;
-                    File f = createFile(path);
-                    if (f.mkdirs()) {}
 
                     // Создается файл в файловой системе для сохранения загружаемого файла
                     path = path + "/" + getFileName(u) + contentType;
@@ -116,7 +116,7 @@ class Download extends AsyncTask {
                     saveBinaryFile(uc, contentLength, file);
                     result = new URI(file.getAbsolutePath());
                     type = URI.class;
-                    Log.d(MainActivity.LOG, "download: doInBackground: saved: " + file.getPath());
+                    Trace.save("download: doInBackground: saved: " + file.getPath());
                 }
                 // Проверяется, что нет необходимости сохранять файл
                 else {
@@ -125,20 +125,19 @@ class Download extends AsyncTask {
 
                     if (contentType.equals(".txt")) type = String.class;
                     else type = Bitmap.class;
-
-                    Log.d(MainActivity.LOG, "download: doInBackground: loaded: " + contentType);
                 }
+                Trace.save("download: doInBackground: loaded: " + getFileName(u) + contentType);
             } else {
-                Log.d(MainActivity.LOG, "download: doInBackground: too big file");
+                Trace.save("download: doInBackground: too big file");
                 return null;
             }
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "download: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Trace.save("download: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
-                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
         }
 
@@ -158,10 +157,10 @@ class Download extends AsyncTask {
         }
         // Выводится трейс для исключения
         catch (Exception e) {
-            Log.d(MainActivity.LOG, "download: doInBackground: " + e.getClass() + ": " + e.getMessage());
+            Trace.save("download: doInBackground: " + e.getClass() + ": " + e.getMessage());
             StackTraceElement[] el = e.getStackTrace();
             for (StackTraceElement i : el) {
-                Log.d(MainActivity.LOG, i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
         }
     }
@@ -172,7 +171,7 @@ class Download extends AsyncTask {
      * @return файл
      * @throws Exception исключение
      */
-    private File createFile(String path) throws Exception {
+    static File createFile(String path) throws Exception {
         return new File(Environment.getExternalStorageDirectory(), path);
     }
 
@@ -187,7 +186,7 @@ class Download extends AsyncTask {
         String fileName = url.getFile();
 
         // Отбрасывается путь до файла
-        fileName = fileName.substring(fileName.lastIndexOf('/') + 1);
+        fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
 
         // Отбрасывается расширение файла и возвращается результат
         return fileName.substring(0, fileName.lastIndexOf("."));
@@ -214,6 +213,8 @@ class Download extends AsyncTask {
      * @throws Exception исключение
      */
     private byte[] saveByteArray(URLConnection uc, int contentLength) throws Exception {
+        Trace.save("download: saveByteArray");
+
         InputStream in = new BufferedInputStream(uc.getInputStream());
         byte[] data = new byte[contentLength];
         int bytesRead;
@@ -242,6 +243,8 @@ class Download extends AsyncTask {
      * @throws Exception исключение
      */
     private void saveBinaryFile(URLConnection uc, int contentLength, File fileName) throws Exception {
+        Trace.save("download: saveBinaryFile");
+
         byte[] data = saveByteArray(uc, contentLength);
 
         FileOutputStream out = new FileOutputStream(fileName);

@@ -26,9 +26,6 @@ import java.util.Map;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, DialogInterface.OnClickListener, CompleteListener {
 
-    /** Строка-константа для логов */
-    final static String LOG = "States";
-
     /** Nдентификатор диалога для списка имен файлов/папок текущей директории */
     private final int DIALOG_LIST = 1;
 
@@ -63,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d(LOG, "mainActivity: onCreate");
+        Trace.save("mainActivity: onCreate");
 
         // Nзвлекаются данные, переданные от вызывавшего Activity
         Intent intent = getIntent();
@@ -100,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             // Проверяется, что нажималась кнопка btnList
             case R.id.btnList:
-                Log.d(LOG, "btnList: onClick");
+                Trace.save("mainActivity: onClick: btnList");
 
                 // Стирается смещение, текущая директория - корневая
                 offset = "";
@@ -129,6 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (id) {
             // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
             case DIALOG_LIST:
+                Trace.save("mainActivity: onCreateDialog: dialog_list");
+
                 // Создается builder для диалога
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
 
@@ -147,10 +146,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 adb.setNeutralButton(R.string.cancel, this);
                 adb.setNegativeButton(R.string.back, this);
 
+                Trace.save("mainActivity: onCreateDialog: dialog_list: return");
+
                 // Создание и возврат диалога
                 return adb.create();
 
             case DIALOG_PROGRESS:
+                Trace.save("mainActivity: onCreateDialog: dialog_progress");
+
                 // Создается диалог прогресса
                 ProgressDialog pd = new ProgressDialog(this);
 
@@ -175,10 +178,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (i) {
             // Проверяется, что нажималась нейтральная кнопка
             case Dialog.BUTTON_NEUTRAL:
+                Trace.save("mainActivity: onClick: button_neutral");
                 break;
 
             // Проверяется, что нажималась негативная кнопка
             case Dialog.BUTTON_NEGATIVE:
+                Trace.save("mainActivity: onClick: button_negative");
+
                 // Проверяется есть ли смещение относительно корневой директории
                 if(offset.contains("/")) {
                     // Удаляется последний шаг смещения, т.е. шаг назад по директории
@@ -191,6 +197,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Проверяется, что выбирался пункт списка
             default:
+                Trace.save("mainActivity: onClick: item: " + i);
+
                 // Забираются данные о выбранном пункте
                 HashMap<String,String> map = (HashMap<String,String>)list.get(i);
 
@@ -225,23 +233,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     public void complete(Object cc, Object result, Class type) throws Exception {
+        Trace.save("mainActivity: complete");
         removeDialog(DIALOG_PROGRESS);
 
         // Проверяется, что источник вызова есть
         if (cc == null) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: сс: null");
+            Trace.save("mainActivity: complete: сс: null");
             return;
         }
 
         // Проверяется, что результат есть
         if (result == null) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: result: null");
+            Trace.save("mainActivity: complete: result: null");
             return;
         }
 
         // Проверяется, что источник - объект класса RequestList
         if (cc instanceof RequestList) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: RequestList");
+            Trace.save("mainActivity: complete: RequestList");
 
             // Результат преобразуется к типу список данных
             list = (ArrayList<Map<String, String>>) result;
@@ -251,11 +260,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         // Проверяется, что источник - объект класса Download
         else if (cc instanceof Download) {
-            Log.d(LOG, "mainActivity: asCompleteListener: complete: Download");
+            Trace.save("mainActivity: complete: Download");
 
             // Проверяется, что тип результата есть
             if (type == null) {
-                Log.d(LOG, "mainActivity: asCompleteListener: complete: type: null");
+                Trace.save("mainActivity: complete: type: null");
                 return;
             }
 
@@ -277,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Определяется сегодняшняя ссылка
                     reference = Download.createTextFromFile((URI) result);
                 }
-                else Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown type");
+                else Trace.save("mainActivity: complete: unknown type");
 
                 // Nнициируется запрос структуры корневой директории
                 offset = "";
@@ -288,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showContent(new Ser(result, type));
             }
         }
-        else Log.d(LOG, "mainActivity: asCompleteListener: complete: unknown cc");
+        else Trace.save("mainActivity: complete: unknown cc");
     }
 
     /**
@@ -316,6 +325,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param i идентификатор диалога
      */
     private void showList(int i) {
+        Trace.save("mainActivity: showList");
+
         removeDialog(i);
         showDialog(i);
     }
@@ -326,6 +337,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @throws Exception исключение
      */
     private void showContent(Ser ser) throws Exception {
+        Trace.save("mainActivity: showContent");
+
         // Создается intent
         Intent intent = new Intent(this, ViewActivity.class);
 
@@ -342,6 +355,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @return список имен
      */
     private ArrayList<String> getNames(ArrayList<Map<String, String>> list) {
+        Trace.save("mainActivity: getNames");
+
         // Создается список имен
         ArrayList<String> names = new ArrayList<>();
 
