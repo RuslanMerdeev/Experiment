@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 // Nнициируется запрос структуры корневой директории
                 offset = "";
-                new RequestList(this, resource, reference, offset);
+                doRequestList();
             }
             else {
                 // Отображается содержание файла
