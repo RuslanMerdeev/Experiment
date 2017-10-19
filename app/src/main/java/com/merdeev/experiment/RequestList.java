@@ -112,7 +112,7 @@ class RequestList extends AsyncTask {
         super.onPostExecute(o);
         try {
             // Уведомляется слушатель о завершении задачи, передается результат
-            cl.complete(this, result, null);
+            cl.complete(this, result, ArrayList.class);
         }
         // Выводится трейс для исключения
         catch (Exception e) {

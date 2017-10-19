@@ -32,6 +32,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /** Nдентификатор диалога прогресса */
     private final int DIALOG_PROGRESS = 2;
 
+    /** Nдентификатор диалога ошибки */
+    private final int DIALOG_ERROR = 3;
+
     /** Текстовое поле для отображения полезной информации */
     private TextView tvContent;
 
@@ -85,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         save_file = getResources().getBoolean(R.bool.save_file);
 
         // Отображается список
-        showList(DIALOG_LIST);
+        showNewDialog(DIALOG_LIST);
     }
 
     /**
@@ -123,13 +126,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     protected Dialog onCreateDialog(int id) {
+        AlertDialog.Builder adb;
+
         switch (id) {
             // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
             case DIALOG_LIST:
                 Trace.save("mainActivity: onCreateDialog: dialog_list");
 
                 // Создается builder для диалога
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                adb = new AlertDialog.Builder(this);
 
                 // Устанавливается заголовок списка + смещение для информирования
                 adb.setTitle(list_title + offset);
@@ -164,6 +169,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 pd.show();
 
                 return pd;
+
+            // Проверяется, что нужно создать диалог ошибки
+            case DIALOG_ERROR:
+                Trace.save("mainActivity: onCreateDialog: dialog_error");
+
+                // Создается builder для диалога
+                adb = new AlertDialog.Builder(this);
+
+                // Устанавливается сообщение ошибки
+                adb.setMessage("Что-то пошло не так :(");
+
+                // Устанавливается кнопка OK
+                adb.setPositiveButton(R.string.ok, this);
+
+                // Устанавливается запрет на выход из диалога по кнопке назад
+                adb.setCancelable(false);
+
+                // Создание и возврат диалога
+                return adb.create();
         }
         return super.onCreateDialog(id);
     }
@@ -193,6 +217,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Nнициируется запрос структуры текущей директории
                     doRequestList();
                 }
+                break;
+
+            // Проверяется, что нажималась позитивная кнопка
+            case Dialog.BUTTON_POSITIVE:
+                finish();
                 break;
 
             // Проверяется, что выбирался пункт списка
@@ -236,15 +265,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Trace.save("mainActivity: complete");
         removeDialog(DIALOG_PROGRESS);
 
-        // Проверяется, что источник вызова есть
+        // Проверяется, что источника вызова нет
         if (cc == null) {
             Trace.save("mainActivity: complete: сс: null");
+            showNewDialog(DIALOG_ERROR);
             return;
         }
 
-        // Проверяется, что результат есть
+        // Проверяется, что результата нет
         if (result == null) {
             Trace.save("mainActivity: complete: result: null");
+            showNewDialog(DIALOG_ERROR);
+            return;
+        }
+
+        // Проверяется, что типа результата нет
+        if (type == null) {
+            Trace.save("mainActivity: complete: type: null");
+            showNewDialog(DIALOG_ERROR);
             return;
         }
 
@@ -252,27 +290,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (cc instanceof RequestList) {
             Trace.save("mainActivity: complete: RequestList");
 
-            // Результат преобразуется к типу список данных
-            list = (ArrayList<Map<String, String>>) result;
+            // Проверяется, что тип результата список
+            if (type == ArrayList.class) {
+                // Результат преобразуется к типу список данных
+                list = (ArrayList<Map<String, String>>) result;
 
-            // Отображается список
-            showList(DIALOG_LIST);
+                // Отображается список
+                showNewDialog(DIALOG_LIST);
+            }
+            else {
+                Trace.save("mainActivity: complete: unknown type");
+                showNewDialog(DIALOG_ERROR);
+            }
         }
         // Проверяется, что источник - объект класса Download
         else if (cc instanceof Download) {
             Trace.save("mainActivity: complete: Download");
-
-            // Проверяется, что тип результата есть
-            if (type == null) {
-                Trace.save("mainActivity: complete: type: null");
-                return;
-            }
-
-            //todo временно
-            if (type == URI.class) {
-                String text = ((URI) result).getPath();
-                tvContent.setText(text);
-            }
 
             // Проверяется, что загружался файл с признаком содержания ссылки
             if (ref) {
@@ -283,10 +316,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 // Проверяется, что тип результата ссылка на файл
                 else if (type == URI.class) {
+                    //todo временно для отображения места хранения
+                    tvContent.setText(((URI) result).getPath());
+
                     // Определяется сегодняшняя ссылка
                     reference = Download.createTextFromFile((URI) result);
                 }
-                else Trace.save("mainActivity: complete: unknown type");
+                else {
+                    Trace.save("mainActivity: complete: unknown type");
+                    showNewDialog(DIALOG_ERROR);
+                    return;
+                }
 
                 // Nнициируется запрос структуры корневой директории
                 offset = "";
@@ -297,7 +337,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showContent(new Ser(result, type));
             }
         }
-        else Trace.save("mainActivity: complete: unknown cc");
+        else {
+            Trace.save("mainActivity: complete: unknown cc");
+            showNewDialog(DIALOG_ERROR);
+        }
     }
 
     /**
@@ -321,11 +364,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Создает заново диалог для отображения списка
+     * Создает заново диалог
      * @param i идентификатор диалога
      */
-    private void showList(int i) {
-        Trace.save("mainActivity: showList");
+    private void showNewDialog(int i) {
+        Trace.save("mainActivity: showNewDialog");
 
         removeDialog(i);
         showDialog(i);

@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class SplashActivity extends AppCompatActivity implements CompleteListener, DialogInterface.OnClickListener {
 
-    /** Nдентификатор диалога для сообщения ошибки */
+    /** Nдентификатор диалога ошибки */
     private final int DIALOG_ERROR = 1;
 
     /** Данные из ресурсов */
@@ -68,17 +68,24 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     public void complete(Object cc, Object result, Class type) throws Exception {
         Trace.save("splashActivity: complete");
 
-        // Проверяется, что источник вызова есть
+        // Проверяется, что источника вызова нет
         if (cc == null) {
             Trace.save("splashActivity: complete: сс: null");
-            showError(DIALOG_ERROR);
+            showNewDialog(DIALOG_ERROR);
             return;
         }
 
-        // Проверяется, что результат есть
+        // Проверяется, что результата нет
         if (result == null) {
             Trace.save("splashActivity: complete: result: null");
-            showError(DIALOG_ERROR);
+            showNewDialog(DIALOG_ERROR);
+            return;
+        }
+
+        // Проверяется, что типа результата нет
+        if (type == null) {
+            Trace.save("splashActivity: complete: type: null");
+            showNewDialog(DIALOG_ERROR);
             return;
         }
 
@@ -86,38 +93,39 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         if (cc instanceof RequestList) {
             Trace.save("splashActivity: complete: RequestList");
 
-            // Проверяется, что запрашивалась сегодняшняя ссылка
-            if (today) {
-                // Nнициируется загрузка последнего файла
-                ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
-                HashMap<String, String> map = (HashMap<String, String>) list.get(list.size()-1);
-                new Download(this, MainActivity.createURLText(map, reference, "/" + map.get("name")), app_name, false);
+            // Проверяется, что тип результата список
+            if (type == ArrayList.class) {
+                // Проверяется, что запрашивалась сегодняшняя ссылка
+                if (today) {
+                    // Nнициируется загрузка последнего файла
+                    ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
+                    HashMap<String, String> map = (HashMap<String, String>) list.get(list.size() - 1);
+                    new Download(this, MainActivity.createURLText(map, reference, "/" + map.get("name")), app_name, false);
+                }
+                // Проверяется, что запрашивалась структура корневой директории
+                else {
+                    // Создается intent
+                    Intent intent = new Intent(this, MainActivity.class);
+
+                    // Сохраняются данные в intent для передачи создаваемому Activity
+                    intent.putExtra("ser", new Ser(result, type));
+                    intent.putExtra("reference", reference_today);
+
+                    // Запускается MainActivity
+                    startActivity(intent);
+
+                    // Останавливается этот Activity
+                    finish();
+                }
             }
-            // Проверяется, что запрашивалась структура корневой директории
             else {
-                // Создается intent
-                Intent intent = new Intent(this, MainActivity.class);
-
-                // Сохраняются данные в intent для передачи создаваемому Activity
-                intent.putExtra("ser", new Ser(result, type));
-                intent.putExtra("reference", reference_today);
-
-                // Запускается MainActivity
-                startActivity(intent);
-
-                // Останавливается этот Activity
-                finish();
+                Trace.save("splashActivity: complete: unknown type");
+                showNewDialog(DIALOG_ERROR);
             }
         }
         // Проверяется, что источник - объект класса Download
         else if (cc instanceof Download) {
             Trace.save("splashActivity: complete: Download");
-
-            // Проверяется, что тип результата есть
-            if (type == null) {
-                Trace.save("splashActivity: complete: type: null");
-                return;
-            }
 
             // Проверяется, что тип результата текст
             if (type == String.class) {
@@ -130,12 +138,12 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
             }
             else {
                 Trace.save("splashActivity: complete: unknown type");
-                showError(DIALOG_ERROR);
+                showNewDialog(DIALOG_ERROR);
             }
         }
         else {
             Trace.save("splashActivity: complete: unknown cc");
-            showError(DIALOG_ERROR);
+            showNewDialog(DIALOG_ERROR);
         }
     }
 
@@ -147,17 +155,21 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
-            // Проверяется, что нужно создать диалог именно для списка файлов/папок текущей директории облака
+            // Проверяется, что нужно создать диалог ошибки
             case DIALOG_ERROR:
                 Trace.save("splashActivity: onCreateDialog: dialog_error");
 
                 // Создается builder для диалога
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
 
-                // Устанавливается заголовок списка + смещение для информирования
+                // Устанавливается сообщение ошибки
                 adb.setMessage("Что-то пошло не так :(");
 
+                // Устанавливается кнопка OK
                 adb.setPositiveButton(R.string.ok, this);
+
+                // Устанавливается запрет на выход из диалога по кнопке назад
+                adb.setCancelable(false);
 
                 // Создание и возврат диалога
                 return adb.create();
@@ -178,11 +190,11 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
     }
 
     /**
-     * Создает заново диалог для отображения ошибки
+     * Создает заново диалог
      * @param i идентификатор диалога
      */
-    private void showError(int i) {
-        Trace.save("splashActivity: showError");
+    private void showNewDialog(int i) {
+        Trace.save("splashActivity: showNewDialog");
 
         removeDialog(i);
         showDialog(i);
