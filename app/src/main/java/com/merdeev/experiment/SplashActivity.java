@@ -1,10 +1,6 @@
 package com.merdeev.experiment;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import java.util.ArrayList;
@@ -16,10 +12,7 @@ import java.util.Map;
  * имеет иконку приложения
  * @author R.Z.Merdeev
  */
-public class SplashActivity extends AppCompatActivity implements CompleteListener, DialogInterface.OnClickListener {
-
-    /** Nдентификатор диалога ошибки */
-    private final int DIALOG_ERROR = 1;
+public class SplashActivity extends Context {
 
     /** Данные из ресурсов */
     private String resource;
@@ -53,7 +46,6 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
         // Nнициируется запрос сегодняшней ссылки
         today = true;
         new RequestList(this, resource, reference, "");
-
     }
 
     /**
@@ -62,88 +54,131 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      * @param cc источник вызова, объект класса
      * @param result результат, произвольные данные
      * @param type тип данных
-     * @throws Exception исключение
      */
     @Override
-    public void complete(Object cc, Object result, Class type) throws Exception {
+    public void complete(Object cc, Object result, Class type) {
         Trace.save("splashActivity: complete");
 
-        // Проверяется, что источника вызова нет
-        if (cc == null) {
-            Trace.save("splashActivity: complete: сс: null");
-            showNewDialog(DIALOG_ERROR);
-            return;
-        }
+        try {
+            // Проверяется, что источника вызова нет
+            if (cc == null) {
+                Trace.save("splashActivity: complete: сс: null");
+                Dialog.showError(this);
+                return;
+            }
 
-        // Проверяется, что результата нет
-        if (result == null) {
-            Trace.save("splashActivity: complete: result: null");
-            showNewDialog(DIALOG_ERROR);
-            return;
-        }
+            // Проверяется, что результата нет
+            if (result == null) {
+                Trace.save("splashActivity: complete: result: null");
+                Dialog.showError(this);
+                return;
+            }
 
-        // Проверяется, что типа результата нет
-        if (type == null) {
-            Trace.save("splashActivity: complete: type: null");
-            showNewDialog(DIALOG_ERROR);
-            return;
-        }
+            // Проверяется, что типа результата нет
+            if (type == null) {
+                Trace.save("splashActivity: complete: type: null");
+                Dialog.showError(this);
+                return;
+            }
 
-        // Проверяется, что источник - объект класса RequestList
-        if (cc instanceof RequestList) {
-            Trace.save("splashActivity: complete: RequestList");
+            // Проверяется, что источник - объект класса RequestList
+            if (cc instanceof RequestList) {
+                Trace.save("splashActivity: complete: RequestList");
 
-            // Проверяется, что тип результата список
-            if (type == ArrayList.class) {
-                // Проверяется, что запрашивалась сегодняшняя ссылка
-                if (today) {
-                    // Nнициируется загрузка последнего файла
-                    ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
-                    HashMap<String, String> map = (HashMap<String, String>) list.get(list.size() - 1);
-                    new Download(this, MainActivity.createURLText(map, reference, "/" + map.get("name")), app_name, false);
+                // Проверяется, что тип результата список
+                if (type == ArrayList.class) {
+                    // Проверяется, что запрашивалась сегодняшняя ссылка
+                    if (today) {
+                        // Nнициируется загрузка последнего файла
+                        ArrayList<Map<String, String>> list = (ArrayList<Map<String, String>>) result;
+                        HashMap<String, String> map = (HashMap<String, String>) list.get(list.size() - 1);
+                        new Download(this, MainActivity.createURLText(map, reference, "/" + map.get("name")), app_name, false);
+                    }
+                    // Проверяется, что запрашивалась структура корневой директории
+                    else {
+                        // Создается intent
+                        Intent intent = new Intent(this, MainActivity.class);
+
+                        // Сохраняются данные в intent для передачи создаваемому Activity
+                        intent.putExtra("ser", new Ser(result, type));
+                        intent.putExtra("reference", reference_today);
+
+                        // Запускается MainActivity
+                        startActivity(intent);
+
+                        // Останавливается этот Activity
+                        finish();
+                    }
+                } else {
+                    Trace.save("splashActivity: complete: unknown type");
+                    Dialog.showError(this);
                 }
-                // Проверяется, что запрашивалась структура корневой директории
-                else {
-                    // Создается intent
-                    Intent intent = new Intent(this, MainActivity.class);
+            }
+            // Проверяется, что источник - объект класса Download
+            else if (cc instanceof Download) {
+                Trace.save("splashActivity: complete: Download");
 
-                    // Сохраняются данные в intent для передачи создаваемому Activity
-                    intent.putExtra("ser", new Ser(result, type));
-                    intent.putExtra("reference", reference_today);
+                // Проверяется, что тип результата текст
+                if (type == String.class) {
+                    // Определяется сегодняшняя ссылка
+                    reference_today = Download.createTextFromByteArray((byte[]) result);
 
-                    // Запускается MainActivity
-                    startActivity(intent);
+                    // Nнициируется начальный запрос структуры корневой директории
+                    today = false;
+                    new RequestList(this, resource, reference_today, "");
+                } else {
+                    Trace.save("splashActivity: complete: unknown type");
+                    Dialog.showError(this);
+                }
+            }
+            // Проверяется, что источник - объект класса Dialog
+            else if (cc instanceof Dialog) {
+                Trace.save("splashActivity: complete: Dialog");
 
-                    // Останавливается этот Activity
-                    finish();
+                // Проверяется, что тип результата массив идентификаторов
+                if (type == int[].class) {
+                    int dialog = ((int[]) result)[0];
+                    int button = ((int[]) result)[1];
+                    if (dialog == Dialog.DIALOG_ERROR){
+                        Trace.save("splashActivity: complete: Dialog: error");
+
+                        switch (button) {
+                            // Проверяется, что нажималась позитивная кнопка
+                            case android.app.Dialog.BUTTON_POSITIVE:
+                                Trace.save("splashActivity: complete: Dialog: error: positive");
+                                finish();
+                                break;
+
+                                // Проверяется, что произошел cancel
+                            case Dialog.BUTTON_CANCEL:
+                                Trace.save("splashActivity: complete: Dialog: error: cancel");
+                                finish();
+                                break;
+
+                            default:
+                                Trace.save("splashActivity: complete: Dialog: error: unknown button");
+                                Dialog.showError(this);
+                                break;
+                        }
+                    }
+                    else {
+                        Trace.save("splashActivity: complete: Dialog: unknown dialog");
+                        Dialog.showError(this);
+                    }
                 }
             }
             else {
-                Trace.save("splashActivity: complete: unknown type");
-                showNewDialog(DIALOG_ERROR);
+                Trace.save("splashActivity: complete: unknown cc");
+                Dialog.showError(this);
             }
         }
-        // Проверяется, что источник - объект класса Download
-        else if (cc instanceof Download) {
-            Trace.save("splashActivity: complete: Download");
-
-            // Проверяется, что тип результата текст
-            if (type == String.class) {
-                // Определяется сегодняшняя ссылка
-                reference_today = Download.createTextFromByteArray((byte[]) result);
-
-                // Nнициируется начальный запрос структуры корневой директории
-                today = false;
-                new RequestList(this, resource, reference_today, "");
+        // Выводится трейс для исключения
+        catch (Exception e) {
+            Trace.save("splashActivity: complete: " + e.getClass() + ": " + e.getMessage());
+            StackTraceElement[] el = e.getStackTrace();
+            for (StackTraceElement i : el) {
+                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
             }
-            else {
-                Trace.save("splashActivity: complete: unknown type");
-                showNewDialog(DIALOG_ERROR);
-            }
-        }
-        else {
-            Trace.save("splashActivity: complete: unknown cc");
-            showNewDialog(DIALOG_ERROR);
         }
     }
 
@@ -153,50 +188,13 @@ public class SplashActivity extends AppCompatActivity implements CompleteListene
      * @return созданный диалог
      */
     @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            // Проверяется, что нужно создать диалог ошибки
-            case DIALOG_ERROR:
-                Trace.save("splashActivity: onCreateDialog: dialog_error");
-
-                // Создается builder для диалога
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
-
-                // Устанавливается сообщение ошибки
-                adb.setMessage("Что-то пошло не так :(");
-
-                // Устанавливается кнопка OK
-                adb.setPositiveButton(R.string.ok, this);
-
-                // Устанавливается запрет на выход из диалога по кнопке назад
-                adb.setCancelable(false);
-
-                // Создание и возврат диалога
-                return adb.create();
+    protected android.app.Dialog onCreateDialog(int id) {
+        if (Dialog.getDialog() == null) {
+            Trace.save("splashActivity: onCreateDialog: dialog: null");
+            Dialog.showError(this);
+            return super.onCreateDialog(id);
         }
-        return super.onCreateDialog(id);
-    }
 
-    /**
-     * При нажатии кнопки диалога
-     * @param dialogInterface диалог
-     * @param i выбранный пункт
-     */
-    @Override
-    public void onClick(DialogInterface dialogInterface, int i) {
-        Trace.save("splashActivity: onClick");
-
-        finish();
-    }
-
-    /**
-     * Создает заново диалог
-     * @param i идентификатор диалога
-     */
-    private void showNewDialog(int i) {
-        Trace.save("splashActivity: showNewDialog");
-
-        removeDialog(i);
-        showDialog(i);
+        return Dialog.getDialog().onCreateDialog(id);
     }
 }

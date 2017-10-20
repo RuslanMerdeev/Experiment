@@ -110,18 +110,9 @@ class RequestList extends AsyncTask {
     @Override
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
-        try {
-            // Уведомляется слушатель о завершении задачи, передается результат
-            cl.complete(this, result, ArrayList.class);
-        }
-        // Выводится трейс для исключения
-        catch (Exception e) {
-            Trace.save("requestList: doInBackground: " + e.getClass() + ": " + e.getMessage());
-            StackTraceElement[] el = e.getStackTrace();
-            for (StackTraceElement i : el) {
-                Trace.save(i.getFileName() + ": " + i.getLineNumber() + ": " + i.getMethodName());
-            }
-        }
+
+        // Уведомляется слушатель о завершении задачи, передается результат
+        cl.complete(this, result, ArrayList.class);
     }
 
     /**
